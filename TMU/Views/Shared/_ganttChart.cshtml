@@ -1,0 +1,52 @@
+﻿@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.msc> _gmsc
+
+@{
+    var AllProject = _msc.GetAllMsc(1, null, null, 8, null, "1");
+    var markdate = DateTime.Now.ToPeString("MM");
+}
+
+ <div class="wrapper">
+        <div class="header">
+@*            <h2>Gantt Chart Concept with CSS-Grid</h2>
+*@@*            <p>Use <strong>grid-column</strong> to span a new entry across the grid. (e. g. <strong>grid-column: 5/12;</strong> spans an entry from May to November)	</p>
+*@        </div>
+        <div class="gantt">
+            <div class="gantt__row gantt__row--months">
+                <div class="gantt__row-first"></div>
+                <span>فروردین</span><span>اردیبهشت</span><span>خرداد</span>
+                <span>تیر</span><span>مرداد</span><span>شهریور</span>
+                <span>مهر</span><span>آبان</span><span>آذر</span>
+                <span>دی</span><span>بهمن</span><span>اسفند</span>
+            </div>
+            <div class="gantt__row gantt__row--lines" data-month="5">
+                <span></span><span class=@((markdate=="01")?"marker":"")></span><span class=@((markdate=="02")?"marker":"")></span><span class=@((markdate=="03")?"marker":"")></span>
+                <span class=@((markdate=="04")?"marker":"")></span><span class=@((markdate=="05")?"marker":"")></span><span class=@((markdate=="06")?"marker":"")></span>
+                <span class=@((markdate=="07")?"marker":"")></span><span class=@((markdate=="08")?"marker":"")></span><span class=@((markdate=="09")?"marker":"")></span>
+                <span class=@((markdate=="10")?"marker":"")></span><span class=@((markdate=="11")?"marker":"")></span><span class=@((markdate=="12")?"marker":"")></span>
+            </div>
+
+        @{
+            foreach(var item in AllProject.cartabl)
+            {
+                 <div class="gantt__row">
+                <div class="gantt__row-first">
+                   @item.Activity
+                </div>
+                <ul class="gantt__row-bars">
+                        @{
+                            var x = item.DetaNews.ToPeString("MM");
+                            var y = Core.TMU.Genarator.SpelitTag.tag(item.deadline);
+
+
+                        }
+                        
+                    <li style="grid-column: @x/@(int.Parse(y[1])+1); background-color: @((_msc.FindMscPersent(item.Idmsc).status == true)?"#2ecaac":"#2ecaac");">مهلت : @item.deadline</li>
+                </ul>
+            </div>
+            }
+        }
+           
+
+
+        </div>

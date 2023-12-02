@@ -1,0 +1,489 @@
+﻿@model List<Data.TMU.Model.msc.MscPercent>
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.msc> _gmsc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.AndicatorUser> _gAndicatorUser
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+
+
+
+@{
+    ViewData["Title"] = "صورت وضعیت";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    var FileUser = _msc.GetAllAndicatorUserByIdCode(ViewBag.user);
+    var d = ViewBag.user as string;
+
+}
+
+<main role="main" class="main-content">
+    <div class="Header-Countainer">
+        میز صورت وضعیت
+    </div>
+    <div class="col toolbarStatusface">
+
+        <label class="m-2" for="UserDBMP">پیمانکار </label>
+        <select class="form-control mb-1" id="selectContractor" onchange="Contractor()" asp-for="@d" asp-items="@(ViewBag.GetAllUserDBMP as SelectList)">
+            <option value="111">انتخاب</option>
+        </select>
+
+
+        <select id="selectyear" onchange="year()" class="form-control">
+            @{
+                for (int l = 0; l < 7; l++)
+                {
+                    var year = (int.Parse(DateTime.Now.ToPeString("yyyy")) - l).ToString();
+                    <option selected="@(ViewBag.year==year)" value="@year">@year</option>
+                }
+
+            }
+        </select>
+    </div>
+    <div>
+    </div>
+    <div class="row container-fluid mr-2">
+        <div>
+
+            <form asp-action="Statusface" method="get" id="form">
+                @* <input type="hidden" id="Contractor" name="Contractor" value="@User.Identity.Name" />*@
+                <input type="hidden" id="Contractor" name="Contractor" value="@ViewBag.user" />
+                <input type="hidden" id="year" name="year" value="@ViewBag.year" />
+
+            </form>
+
+        </div>
+
+        <div class="col">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">ردیف</th>
+
+                        <th scope="col">
+
+                            <select id="selectactive" onchange="selectactive()" class="form-control">
+                                <option value="فعال">انتخاب</option>
+                                <option value="فعال">فعال</option>
+                                <option value="مسدود">غیر فعال</option>
+
+                            </select>
+
+                        </th>
+
+
+                        <th scope="col">
+                            <input class="form-control" type="text" id="Activity" onkeyup="Activity()" placeholder="نام پروژه" title="نام پروژه">
+
+                        </th>
+                        <th scope="col">
+                            <input class="form-control" type="text" id="Sender" onkeyup="Sender()" placeholder="پیمانکار" title="پیمانکار">
+
+                        </th>
+                        <th scope="col">
+                            <input class="form-control" type="text" id="date" onkeyup="date()" onclick="PersianDatePicker.Show(this,'@DateTime.Now.ToPeString("yyyy/MM/dd")');" placeholder="تاریخ" title="تاریخ">
+                        </th>
+                        <th scope="col">
+                            <input class="form-control" type="text" id="status" onkeyup="status()" placeholder="وضعیت" title="وضعیت">
+
+                        </th>
+                        <th scope="col">اطلاعات</th>
+                        <th scope="col">فاکتور</th>
+                        <th scope="col">
+                            <input class="form-control" type="text" id="NumberStatus" onkeyup="NumberStatus()" placeholder="شماره" title="شماره">
+
+                        </th>
+
+                    </tr>
+                </thead>
+                <form asp-action="Statusface" method="post" enctype="multipart/form-data">
+                <tbody id="myTable">
+                        @{
+                            int i = 1;
+                            foreach (var item in Model)
+                            {
+
+                                var Msc = _gmsc.GetById(item.Idmsc);
+                            <tr>
+                                <td scope="row">@i</td>
+                                    @{
+
+                                        if (Permision.CheakPermissionAllow(4, _user.FindUser(User.Identity.Name).Id) == true && ViewBag.user == User.Identity.Name)
+                                        {
+                                        <td id="selectactive">
+                                                @{
+                                                    if (_msc.FindMscPersent(item.Idmsc).statusstatusface == false)
+                                                    {
+                                                    <p class="d-none">مسدود</p>
+                                                    }
+                                                    else
+                                                    {
+                                                    <p class="d-none">فعال</p>
+                                                    }
+                                                }
+                                            <input type="checkbox" disabled="@(_msc.FindMscPersent(item.Idmsc).statusstatusface==false)" name="itemCk" value="@Msc.Idmsc" />
+                                        </td>
+                                        }
+                                        else
+                                        {
+
+                                        <td id="selectactive">
+                                            <p class="d-none">فعال</p>
+                                            <p class="d-none">مسدود</p>
+                                            <input type="checkbox" disabled />
+                                        </td>
+                                        }
+
+                                    }
+                                <td id="Activity">@Msc.Activity</td>
+                                <td id="Sender">@_user.FindUser(item.IdCodeUser).FullName</td>
+                                <td id="date">@Msc.DetaNews.ToPeString("yyyy/MM/dd")</td>
+
+
+                                    @{
+                                        if (item.status == true)
+                                        {
+                                        <td id="status">اتمام پروژه</td>
+                                        }
+                                        else
+                                        {
+                                            if (_msc.GetStatusValidition(item.Idmsc, true, true))
+                                            {
+                                            <td id="status">پروژه نیمه کاره است</td>
+                                            }
+                                            else
+                                            {
+                                            <td id="status">پروژه در دست اقدام است</td>
+                                            }
+
+                                        }
+                                        var mo = "#modal" + item.Idmsc;
+                                        var moid = "modal" + item.Idmsc;
+                                        i++;
+                                    }
+                                <td class="tooltipTable">
+                                    <i class="fa fa-child"></i>
+                                    <div class="tooltipT">
+                                        <p>حجم درخواستی اولیه : @Msc.Volume</p>
+                                        <p>واحد کار انجام شده توسط پیمانکار : @item.PercentUser</p>
+                                        <p>کار تایید شده توسط کارشناس :@item.Percent</p>
+                                        <p>هزینه کل :@Msc.Price</p>
+                                        <p>مهلت اتمام : @Msc.deadline</p>
+                                    </div>
+                                </td>
+
+                                <td>
+                                        @{
+                                            var mofa = "#modalfa" + item.Idmsc;
+                                            var moidfa = "modalfa" + item.Idmsc;
+
+                                        <button type="button" class="btn btn-outline-info mr-1" data-toggle="modal" data-target=@mofa>فاکتور</button>
+
+                                        }
+
+
+
+
+                                </td>
+
+
+                                <td id="NumberStatus">
+                                        @{
+
+                                            foreach (var item1 in FileUser)
+                                            {
+                                                var tag = Core.TMU.Genarator.SpelitTag.tag(item1.IdMSC);
+
+
+                                                foreach (string s in tag)
+                                                {
+                                                    if (s == item.Idmsc.ToString())
+                                                    {
+                                                    <button type="button" class="btn btn-outline-info mr-1" data-toggle="modal" data-target=@mo>@item1.Andicator</button>
+
+                                                    }
+                                                }
+
+                                            }
+
+
+                                        }
+                                </td>
+                            </tr>
+
+
+
+                            <div class="modal fade" id=@moidfa tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content" style="background-color: #323639">
+                                        <div>
+                                                @{
+                                                    if (FileUser != null)
+                                                    {
+                                                    <div class="Header-Countainer">
+                                                        ارسال فاکتور
+                                                    </div>
+                                                    <div>
+                                                            @{
+                                                                var namefactor = "فاکتور" + item.Idmsc;
+                                                                var namefa = namefactor + ".pdf";
+                                                                if (Core.TMU.FileSite.IsExist.ExistFile(namefactor + ".pdf", @"wwwroot\file\Factor\") == true)
+                                                                {
+
+                                                                <iframe id="file-frame" src="~/file/Factor/@namefa" style="width: 50em;height:49em"></iframe>
+                                                                }
+                                                                else
+                                                                {
+                                                                <input type="file" name="filefactor" class="btn btn-outline-secondary m-2" id="file-input" title="آپلود فایل فاکتور" cept="application/pdf" />
+                                                                <input type="hidden" name="namefile" value=@namefactor />
+                                                                <button type="submit" title="آپلود" class="btn btn-outline-secondary m-2"> ارسال به سرور</button>
+                                                                }
+
+                                                            }
+
+
+                                                        <div class="SourceFile">
+                                                            <iframe id="file-frame" style="width: 200em;height:39em;display: none"></iframe>
+
+                                                        </div>
+                                                    </div>
+
+                                                    }
+                                                }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="modal fade" id=@moid tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content" style="background-color: #323639">
+                                        <div>
+                                                @{
+                                                    if (FileUser != null)
+                                                    {
+                                                    <div class="Header-Countainer">
+                                                        صورت وضعیت ها
+                                                    </div>
+                                                    <div>
+                                                        <div class="SourceFile">
+                                                                @{
+                                                                    foreach (var item1 in FileUser)
+                                                                    {
+                                                                        var embed = "embed" + item1.LetterNumber;
+                                                                        var tag = Core.TMU.Genarator.SpelitTag.tag(item1.IdMSC);
+
+
+                                                                        foreach (string s in tag)
+                                                                        {
+                                                                            if (s == item.Idmsc.ToString())
+                                                                            {
+                                                                                //if (Core.TMU.FileSite.SpireWord.IsExists(item1.LetterNumber + ".pdf", @"wwwroot\file\Status-face\"))
+                                                                                //{
+                                                                                var namefile = item1.Andicator;
+                                                                                var file = item1.LetterNumber;
+                                                                            <input type="hidden" id="@item1.IdAU" value="@item1.LetterNumber" />
+                                                                            <a class="btn btn-outline-light mr-1" href="/panel/StatusfacePrint/@item1.LetterNumber">@namefile</a>
+                                                                                //<button type="button" onclick="Showpdf(@item1.IdAU,'@embed')" class="btn btn-outline-light mr-1">@namefile</button>
+
+                                                                                //}
+                                                                            }
+                                                                        }
+
+
+
+                                                                    }
+                                                                }
+                                                        </div>
+                                                    </div>
+
+                                                    }
+                                                }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            }
+                        }
+
+                </tbody>
+                    @{
+                        if (Permision.CheakPermissionAllow(4, _user.FindUser(User.Identity.Name).Id) == true && ViewBag.user == User.Identity.Name)
+                        {
+                        <button type="submit" class="btn btn-outline-dark mb-3">صدور صورت وضعیت</button>
+                        }
+                    }
+
+                </form>
+            </table>
+
+
+        </div>
+
+
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+
+
+         var input = document.getElementById("file-input");
+         input.addEventListener("change", showFile);
+         function showFile() {
+
+
+              var frame = document.getElementById("file-frame");
+              frame.style.display = "block";
+              var file = input.files[0];
+              var url = URL.createObjectURL(file);
+              frame.src = url;
+
+
+         }
+
+        function year(year)
+            {
+                var selectBox = document.getElementById("selectyear");
+                var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+                $("#year").val(selectedValue);
+                $("#form").submit();
+            }
+            function Contractor(Contractor)
+            {
+                var selectBox = document.getElementById("selectContractor");
+                var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+                $("#Contractor").val(selectedValue);
+                $("#form").submit();
+            }
+            function selectactive() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("selectactive");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[1];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+        function Activity() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("Activity");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[2];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+
+             function Sender() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("Sender");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[3];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+
+             function status() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("status");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[5];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+             function date() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("date");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[4];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+
+             function NumberStatus() {
+               var input, filter, table, tr, td, i, txtValue;
+               input = document.getElementById("NumberStatus");
+               filter = input.value.toUpperCase();
+               table = document.getElementById("myTable");
+               tr = table.getElementsByTagName("tr");
+               for (i = 0; i < tr.length; i++) {
+                 td = tr[i].getElementsByTagName("td")[8];
+                 if (td) {
+                   txtValue = td.textContent || td.innerText;
+                   if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                     tr[i].style.display = "";
+                   } else {
+                     tr[i].style.display = "none";
+                   }
+                 }
+               }
+             }
+
+         function myFunction()
+         {
+            $("#form").submit();
+         }
+          function Showpdf(id,embed)
+          {
+            document.getElementById(embed).style.display="block"
+            //document.getElementById(embed).src = "/file/Status-face/"+document.getElementById(id).value+".pdf";
+          }
+
+
+
+
+
+    </script>
+
+</main>
+

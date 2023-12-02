@@ -1,0 +1,730 @@
+﻿@model Data.TMU.Model.msc.msc
+@using Core.TMU.Convertor
+@using Core.TMU.Genarator
+@inject Core.TMU.Service.ITMUService.IUser user
+@inject Core.TMU.Service.ITMUService.IPermision _Permision
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@{
+    ViewData["Title"] = "تعریف پروژه";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    Data.TMU.Model.msc.MscPercent mscpersent = null;
+    var t = "";
+    var unitprice = 0.0;
+    if (ViewBag.disabel == "متمم")
+    {
+        mscpersent = _msc.FindMscPersent(Model.Idmsc);
+        t = PersiannumberTOenglish.PersianToEnglish(Model.Price.Replace("٬", ""));
+        unitprice = float.Parse(t) / float.Parse(Model.Volume.Replace(".", ","));
+
+    }
+
+}
+
+<section>
+    <form asp-action="CreatProject" method="post">
+        <div class="formpanel">
+            <div class="headerform">
+                @{
+
+                    if (ViewBag.disabel == "متمم")
+                    {
+                        var Activity = _msc.getPricelistbyid(int.Parse(Model.Activity)).Activity + "-متمم";
+                        <p>@(_msc.getPricelistbyid(int.Parse(Model.Activity)).Activity)-متمم</p>
+                        <input type="hidden" asp-for="Andicator" value=@Model.Andicator>
+                        <input type="hidden" asp-for="Activity" value=@Activity>
+                        <input type="hidden" asp-for="IdmscM" value=@Model.Idmsc>
+                        <input id="A" value="@ViewBag.A" type="hidden">
+
+
+                    }
+                    else
+                    {
+                        <p>ثبت پروژه</p>
+                    }
+
+                }
+
+            </div>
+            <input asp-for="author" type="hidden" value=@user.Getname(User.Identity.Name)>
+            <input type="hidden" asp-for="IdAuthor" value=@user.FindUser(User.Identity.Name).Id>
+            <input type="hidden" asp-for="letter_number" value=@Core.TMU.Genarator.Code.UniqCode()>
+            <input type="hidden" asp-for="number" value="0">
+            <input type="hidden" asp-for="Idmsc" value="0">
+            <div class="bodyF">
+                <div class="bodyform">
+                    <div>
+                        <label>زمان ایجاد</label>
+                        <input type="text" required asp-for="DetaNews" disabled value="@DateTime.Now.ToPeString("dddd, dd, MMMM,yyyy")" class="form-control">
+                        
+                    </div>
+                    <input type="hidden" id="inputActivity" value="">
+                    <div>
+                        <label>دسته فعالیت</label>
+                        <select class="form-control mb-1" id="CaregouryActivity" asp-for="CaregouryActivity" asp-items="@(ViewBag.PriceActivity as SelectList)" readonly=@( ViewBag.disabel == "متمم")>
+                            <option value="">انتخاب کنید</option>
+                            <option value="00">خرید فاکتوری</option>
+                        </select>
+                    </div>
+                    <div id="Activitymore">
+                        <label>فعالیت</label>
+                        <select class="form-control" id="selectActivity" asp-for="Activity" readonly=@( ViewBag.disabel == "متمم")>
+                            <option value="">انتخاب کنید</option>
+                        </select>
+                        <span asp-validation-for="Activity"></span>
+                    </div>
+                    <div style="display:none" id="Activityone">
+                        <label>فعالیت</label>
+                        <input name="activityname" id="selectActivityone" class="form-control mb-1">
+                        @*<span asp-validation-for="Activity"></span>*@
+                    </div>
+                    <div>
+                        <label>هزینه هر واحد (ریال) </label>
+                        <input asp-for="OnePrice" oninvalid="this.setCustomValidity('لطفا هزینه واحد را پر کنید')" oninput="this.setCustomValidity('')" required type="text" readonly class="form-control Money" id="input2" onchange="sum()" onkeyup="sum()" value=@(( ViewBag.disabel == "متمم")?_msc.getPricelistbyid(int.Parse(Model.Activity)).Price :"")>
+                        <span asp-validation-for="OnePrice"></span>
+                    </div>
+                    <div>
+                        <label>هزینه کل (ریال) </label>
+                        <input required asp-for="Price" type="text" readonly class="form-control Money" id="txtMoney" oninvalid="this.setCustomValidity('لطفا هزینه کل را پر کنید')" oninput="this.setCustomValidity('')">
+                        <span asp-validation-for="Price"></span>
+                    </div>
+                    <label id="output"></label>
+
+                    @{
+                        if (ViewBag.disabel == "متمم")
+                        {
+                            <div id="infolocation">
+                                <h2>محل اجرا:@Model.Location</h2>
+                                @{
+                                    if (Model.Seri != null)
+                                    {
+                                        <h2>سری:@Model.Seri</h2>
+                                    }
+                                    if (Model.parcel != null)
+                                    {
+                                        <h2>سری:@Model.Seri</h2>
+                                        <h2>پارسل:@Model.parcel</h2>
+                                    }
+                                    if (Model.Well != null)
+                                    {
+                                        <h2>سری:@Model.Well</h2>
+                                    }
+                                }
+                            </div>
+                        }
+                    }
+
+
+                    <div>
+                        <label>محل اجرا</label>
+                        <select class="form-control" readonly=@( ViewBag.disabel == "متمم") asp-for="Location" aria-label="Default select example" onchange="Checklocation(this);">
+                            <option value="فولاد مبارکه">فولاد مبارکه</option>
+                            <option value="سری">سری</option>
+                            <option value="پارسل">پارسل</option>
+                            <option value="چاه">چاه</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="bodyform">
+
+                    <div>
+                        <label>مهلت اجرا</label>
+                        <input required autocomplete="off" readonly=@( ViewBag.disabel == "متمم") asp-for="deadline" type="text" onclick="PersianDatePicker.Show(this,'@DateTime.Now.ToPeString("yyyy/MM/dd")');" class="form-control">
+                        <span asp-validation-for="deadline"></span>
+                    </div>
+
+                    @*<div>
+                        <label>واحد</label>
+                        <select asp-for="Unit" class="form-control" id="inputGroupSelect01">
+                        <option>ماه</option>
+                        <option>سال</option>
+                        </select>
+
+                        </div>*@
+                    <div>
+                        <label>واحد فعالیت</label>
+                        <input required asp-for="Unit" readonly placeholder="واحد" type="text" id="unit" class="form-control" oninvalid="this.setCustomValidity('لطفا واحد فعالت را پر کنید')" oninput="this.setCustomValidity('')">
+                        <span asp-validation-for="Unit"></span>
+                    </div>
+
+                    <div>
+
+                        <label for="slider">ضریب پیشنهادی</label>
+                        <input required class="form-control" readonly asp-for="factoroffer" id="factoroffer" readonly=@( ViewBag.disabel == "متمم") id="factoroffer" type="text" placeholder="ضریب پیشنهادی" oninvalid="this.setCustomValidity('لطفا ضریب پیشنهادی را پر کنید')" oninput="this.setCustomValidity('')">
+                        @*<span asp-validation-for="factoroffer"></span>*@
+                    </div>
+                    @{
+                        //if (ViewBag.disabel != "متمم")
+                        //{
+                        <div>
+                            <label for="slider">حجم کار</label>
+                            @*<input class="slider" type="range" id="slider" disabled name="slider" min="0"  step="1" value="1">*@
+                            <input required oninvalid="this.setCustomValidity('مقدار را درست وارد کنید')" oninput="this.setCustomValidity('')" class="form-control" asp-for="Volume" type="number" id="input1" min="1" placeholder="حجم کار" onchange="sum()" onkeyup="sum()" step="0.1" value="0">
+                            <span asp-validation-for="Volume"></span>
+                        </div>
+
+
+                        //}
+                    }
+
+
+                    @{
+                        if (user.IsUpperLevelUserAutorize(User.Identity.Name))
+                        {
+                            if (ViewBag.disabel != "متمم")
+                            {
+                                <div>
+                                    <label>گیرنده</label>
+                                    <select name="userreciver" readonly=@( ViewBag.disabel == "متمم") class="form-control" id="inputGroupSelect01" asp-items="@(ViewBag.reciveruser as SelectList)">
+                                    </select>
+                                </div>
+                            }
+                        }
+
+                    }
+
+
+                    @*
+                        @{
+                        if (ViewBag.disabel == "متمم")
+                        {
+                        if (Model.Andicator != "0")
+                        {
+
+                        <div class="form-group col-md-12">
+                        <label for="customRange" class="form-label"> پیشرفت</label>
+                        <input class="form-control" asp-for="Volume" type="number" min="1" max="300">
+
+                        </div>
+
+                        }
+                        }
+
+
+                        }*@
+
+
+                </div>
+            </div>
+            <div class="bodyF" readonly=@( ViewBag.disabel == "متمم") id="SubLocation" style="display: flow-root;">
+
+                <div class="bodyform d-none" id="bodyLocationwell">
+                    <label>شماره چاه</label>
+                    <div class="d-flex flex-wrap">
+
+                        @{
+                            for (int i = 1; i < 26; i++)
+                            {
+                                <div class=" custom-checkbox mb-3">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" name="Well" id="@i" value="@i">
+                                        <label class="custom-control-label" for="@i">@i</label>
+                                    </div>
+                                </div>
+
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="bodyform d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyLocationSeri">
+                    <div class="locationseri">
+                        <label>شماره سری</label>
+                        <select onchange="getValueParcelseri(this)" class="form-control" asp-for="Seri" aria-label="Default select example">
+                            <option value="">انتخاب کنید</option>
+                            @{
+                                for (int i = 1; i < 9; i++)
+                                {
+
+                                    <option value="@i">@i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="bodyform d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyLocationparcel">
+                    <label>شماره پارسل</label>
+                    <div class="d-flex flex-wrap">
+                        <div class="Parcel1 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel1">
+                            @{
+
+                                for (int i = 101; i < 181; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel2 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel2">
+                            @{
+
+                                for (int i = 201; i < 265; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel3 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel3">
+                            @{
+
+                                for (int i = 301; i < 369; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel4 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel4">
+                            @{
+
+                                for (int i = 401; i < 466; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel5 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel5">
+                            @{
+
+                                for (int i = 501; i < 550; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel6 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel6">
+                            @{
+
+                                for (int i = 601; i < 635; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel7 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel7">
+                            @{
+
+                                for (int i = 701; i < 782; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+                        <div class="Parcel8 d-none" readonly=@( ViewBag.disabel == "متمم") id="bodyparcel8">
+                            @{
+
+                                for (int i = 801; i < 807; i++)
+                                {
+                                    <div class=" custom-checkbox mb-3">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="parcel" id="@i" value="@i">
+                                            <label class="custom-control-label" for="@i">@i</label>
+                                        </div>
+                                    </div>
+
+                                }
+
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label>توضیحات</label>
+                <textarea required oninvalid="this.setCustomValidity('لطفا توضیحات را پر کنید')" oninput="this.setCustomValidity('')" asp-for="Description" class="form-control" rows="2" cols="4" placeholder="توضیحات"></textarea>
+                <span asp-validation-for="Description"></span>
+            </div>
+            @{
+                if (_Permision.IsTrueFinalaproval() == true && _Permision.IsTruePermitionPrint() == true && _Permision.Isendprosecc() == true)
+                {
+                    if (user.IsUpperLevelUserAutorize(User.Identity.Name))
+                    {
+                        <button type="submit" class="btn btn-outline-secondary m-3">ثبت و ارجاع</button>
+                    }
+                    else
+                    {
+                        if (ViewBag.disabel == "متمم")
+                        {
+                            <button type="submit" class="btn btn-outline-secondary m-3">ثبت متمم</button>
+                        }
+                        else
+                        {
+                            <p class="mt-2">کاربری با سطح دسترسی بالا تر از شما جهت ارجاع نامه وجود ندارد</p>
+                        }
+
+                    }
+
+                }
+                else
+                {
+                    <p class="mt-2">کاربری جهت تایید و ثبت در اندیکاتور، به عنوان تایید کننده یا اتمام چرخه مشخص نشده است</p>
+                    <p class="mt-2">به بخش تعریف و تغییر نقشهای پرسنلی مراجعه نمایید.</p>
+                }
+
+            }
+
+
+            <div class="headerform">
+                <p>اطلاعات خواسته شده را تکمیل نمایید</p>
+            </div>
+        </div>
+
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script>
+
+
+
+
+          document.getElementById("CaregouryActivity").addEventListener("click", insertValue);
+
+          function insertValue() {
+           // یافتن المان select با استفاده از آیدی
+           let select = document.getElementById("CaregouryActivity");
+           // خواندن مقدار select
+           let value = select.value;
+           if(value=="00")
+           {
+                document.getElementById("Activityone").style.display="block"
+                document.getElementById("Activitymore").style.display="none"
+               document.getElementById("factoroffer").removeAttribute("readonly");
+               document.getElementById("txtMoney").removeAttribute("readonly");
+               document.getElementById("input2").removeAttribute("readonly");
+               document.getElementById("unit").removeAttribute("readonly");
+              document.getElementById("factoroffer").value="";
+              document.getElementById("txtMoney").value="";
+              document.getElementById("input2").value="";
+              document.getElementById("input1").value="";
+              document.getElementById("unit").value="";
+
+
+           }
+           else
+           {
+               document.getElementById("Activityone").style.display="none"
+                document.getElementById("Activitymore").style.display="block"
+               document.getElementById("factoroffer").setAttribute("readonly", "readonly");
+               document.getElementById("txtMoney").setAttribute("readonly", "readonly");
+               document.getElementById("input2").setAttribute("readonly", "readonly");
+               document.getElementById("unit").setAttribute("readonly", "readonly");
+
+           }
+           //// یافتن المان input با استفاده از آیدی
+           //let input = document.getElementById("selectactivityhiden");
+           //// درج مقدار select در input
+           //input.value = value;
+        }
+
+         //$("#selectActivity").empty();
+         //                $.getJSON("/Panel/GetActivityUnderPriceActivity/" + $("#CaregouryActivity :selected").val(),
+         //                function (data) {
+
+                 window.onload=function()
+                     {
+                         $("#selectActivity").empty();
+                         $.getJSON("/Panel/GetActivityUnderPriceActivity/" +  $("#CaregouryActivity :selected").val(),
+                         function (data) {
+
+                         $.each(data,
+                         function () {
+                             if(this.value==document.getElementById("A").value){
+                                  $("#selectActivity").append('<option selected value=' + this.value + '>' + this.text + '</option>');
+                             }else{
+                                  $("#selectActivity").append('<option value=' + this.value + '>' + this.text + '</option>');
+                             }
+
+
+                         });
+
+                         });
+                     }
+
+
+                             $("#CaregouryActivity").change(function () {
+                         $("#selectActivity").empty();
+                         $.getJSON("/Panel/GetActivityUnderPriceActivity/" + $("#CaregouryActivity :selected").val(),
+                         function (data) {
+                         $.each(data,
+                         function () {
+                         $("#selectActivity").append('<option value=' + this.value + '>' + this.text + '</option>');
+
+                         });
+
+                         });
+                         });
+
+
+
+
+
+
+                     //function getValueActivity() {
+                         //var dropdown = document.getElementById("selectActivity");
+                         //var selectedValue = dropdown.options[dropdown.selectedIndex].value;
+
+                         $("#selectActivity").change(function () {
+                         var dropdown = document.getElementById("selectActivity");
+                         var selectedValue = dropdown.options[dropdown.selectedIndex].value;
+                         $("#factoroffer").empty();
+                         $("#input2").empty();
+                         document.getElementById("input1").value = "";
+                          document.getElementById("txtMoney").value = "";
+                         $("#unit").empty();
+                                 $.ajax({
+                                 url: '@Url.Action("factoroffer","Panel")',
+                                 data: { id:selectedValue },
+                                 success: function(result) {
+                                     $('#factoroffer').val(result);
+
+                                 }
+                             });
+                             $.ajax({
+                                 url: '@Url.Action("price","Panel")',
+                                 data: { id:selectedValue },
+                                 success: function(result) {
+                                     $('#input2').val(result);
+                                 }
+                             });
+                             $.ajax({
+                                 url: '@Url.Action("unit","Panel")',
+                                 data: { id:selectedValue },
+                                 success: function(result) {
+                                     $('#unit').val(result);
+                                 }
+                             });
+
+                     });
+                        
+
+
+                     function Checklocation(that){
+                         var elementC = document.getElementById("bodyLocationwell");
+                         var elementS = document.getElementById("bodyLocationSeri");
+                         var elementP = document.getElementById("bodyLocationparcel");
+                         var elementBL = document.getElementById("SubLocation");
+                         var elementparcel1 = document.getElementById("bodyparcel1");
+                         if (that.value == "فولاد مبارکه") {
+
+                             elementBL.className = "bodyF d-none";
+                             elementC.className = "bodyform d-none";
+                             elementP.className = "bodyform d-none";
+                             elementS.className = "bodyform d-none";
+                          }
+                         if (that.value == "چاه") {
+                             elementBL.className = "bodyF";
+                             elementC.className = "bodyform";
+                             elementP.className = "bodyform d-none";
+                             elementS.className = "bodyform d-none";
+                          }
+
+                          if (that.value == "سری") {
+                             elementBL.className = "bodyF";
+                             elementS.className = "bodyform";
+                             elementC.className = "bodyform d-none";
+                             elementP.className = "bodyform d-none";
+                          }
+                          if (that.value == "پارسل") {
+                             elementBL.className = "bodyF";
+                             elementP.className = "bodyform";
+                             elementS.className = "bodyform";
+                             elementC.className = "bodyform d-none";
+                             elementparcel1.className = "Parcel1";
+
+                          }
+
+                       }
+                     //function sum()
+                     //{
+                     // var r= parseInt(document.getElementById("input1").value) * parseInt(document.getElementById("input2").value);
+                     //  document.getElementById("txtMoney").value=new Intl.NumberFormat('fa-IR', { maximumSignificantDigits: 3 }).format(r)
+                     //}
+                     function sum()
+                         {
+                          var r= parseFloat(document.getElementById("input1").value) * parseInt(document.getElementById("input2").value)*parseFloat(document.getElementById("factoroffer").value);
+                         document.getElementById("txtMoney").value = new Intl.NumberFormat('fa-IR').format(r);
+
+                         }
+
+
+                      function getValueParcelseri(that)
+                      {
+                         var elementparcel1 = document.getElementById("bodyparcel1");
+                         var elementparcel2 = document.getElementById("bodyparcel2");
+                         var elementparcel3 = document.getElementById("bodyparcel3");
+                         var elementparcel4 = document.getElementById("bodyparcel4");
+                         var elementparcel5 = document.getElementById("bodyparcel5");
+                         var elementparcel6 = document.getElementById("bodyparcel6");
+                         var elementparcel7 = document.getElementById("bodyparcel7");
+                         var elementparcel8 = document.getElementById("bodyparcel8");
+
+                          if (that.value == "1") {
+                             elementparcel1.className = "Parcel1";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";
+
+                          }
+                         if (that.value == "2") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 ";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";
+                          }
+                         if (that.value == "3") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 ";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";
+                          }
+
+                          if (that.value == "4") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 ";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";;
+                          }
+                          if (that.value == "5") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";
+
+                          }
+                          if (that.value == "6") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8 d-none";
+
+                          }
+                          if (that.value == "7") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7";
+                             elementparcel8.className = "Parcel8 d-none";
+
+                          }
+                          if (that.value == "8") {
+                             elementparcel1.className = "Parcel1 d-none";
+                             elementparcel2.className = "Parcel2 d-none";
+                             elementparcel3.className = "Parcel3 d-none";
+                             elementparcel4.className = "Parcel4 d-none";
+                             elementparcel5.className = "Parcel5 d-none";
+                             elementparcel6.className = "Parcel6 d-none";
+                             elementparcel7.className = "Parcel7 d-none";
+                             elementparcel8.className = "Parcel8";
+
+                          }
+
+
+                      }
+
+
+    </script>
+
+    <script>
+              const slider = document.getElementById("slider");
+              const sliderValue = document.getElementById("input1");
+
+              slider.addEventListener("input", function() {
+                sliderValue.value = slider.value;
+              });
+
+              sliderValue.addEventListener("input", function() {
+                slider.value = sliderValue.value;
+              });
+
+              sliderValue.addEventListener("change", function() {
+                if (sliderValue.value >= 10000) {
+                  slider.max = sliderValue.value;
+                } else {
+                  slider.max = 100;
+                }
+              });
+
+
+               const inputField = document.getElementById("inputFieldText");
+
+        inputField.addEventListener("input", function() {
+          if (isNaN(inputField.value)) {
+            alert("ضریب پیشنهادی باید عدد باشد");
+          }
+        });
+    </script>
+</section>

@@ -1,0 +1,161 @@
+﻿@model Data.TMU.Model.msc.ListMscPersentViewModel
+@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@using System.Text.Encodings.Web;
+
+@{
+    ViewData["Title"] = " کارتابل " + @_user.FindUser(User.Identity.Name).FullName;
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<main role="main" class="main-content">
+    <div class="Header-Countainer mt-5">
+        پروژه های ناتمام
+    </div>
+    <div class="container-fluid">
+        @{
+            if (Model.category.Count != 0)
+            {
+                <div class="row justify-content-center">
+                    <div class="col-12">
+                       
+                        <form asp-action="" method="get" id="form">
+
+                            <input type="hidden" id="pageid" name="pageid" value="1" />
+
+                        </form>
+                        <!-- table -->
+                    <div class="card shadow">
+                            <div class="card-body">
+                                <table class="table table-borderless table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <input class="form-control" type="text" id="Activity" onkeyup="Activity()" placeholder="نام پروژه" title="نام پروژه">
+                                            </th>
+                                            <th>وضعیت</th>
+                                            <th>اخرین بروزرسانی</th>
+                                            <th>حجم کار</th>
+                                            <th>حجم انجام شده</th>
+                                            <th>فرآیند</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            foreach (var item in Model.category)
+                                            {
+                                                <tr>
+
+                                                    <td>
+                                                        <p class="mb-0 text-muted"><strong>@item.Activity</strong></p>
+                                                    </td>
+
+
+                                                    <td>
+                                                        <p class="mb-0 text-muted"><strong>@((item.status==false)?"نا تمام":"اتمام")</strong></p>
+                                                        <small class="mb-0 text-muted"></small>
+                                                    </td>
+                                                    <td>
+                                                        <p class="mb-0 text-muted"><strong>@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</strong></p>
+                                                        <small class="mb-0 text-muted"></small>
+                                                    </td>
+                                                    <td>
+                                                        <p class="mb-0 text-muted"><strong>@item.Volume</strong></p>
+                                                    </td>
+                                                    <td>
+                                                        <p class="mb-0 text-muted"><strong>@item.Percent</strong></p>
+                                                    </td>
+
+
+                                                    <td>
+                                                        @{
+                                                            if (_msc.GetStatusValidition(@item.Idmsc, true, true) && _msc.FindMscPersent(item.Idmsc).status == false)
+                                                            {
+                                                                <a href="/panel/UpdateProject/@item.letter_number/@item.Activity/@item.Idmsc" type="button" class="btn btn-outline-secondary">شروع مجدد</a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <p>اتمام پروژه</p>
+                                                            }
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <nav aria-label="Table Paging" class="my-3">
+                            <ul class="pagination justify-content-end mb-0">
+                                <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                                @{
+
+
+                                    for (int i = 1; i <= Model.CountPage; i++)
+                                    {
+                                        <li class=@(Model.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpage(@i)">@i</a></li>
+
+                                    }
+
+                                }
+                                <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                            </ul>
+                        </nav>
+                    </div> <!-- .col-12 -->
+            </div> <!-- .row -->
+            }
+            else
+            {
+                <p class="alert1">پروژه نا تمامی وجود ندارد</p>
+            }
+        }
+
+    </div> <!-- .container-fluid -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function Activity() {
+                var input, filter, table, tr, td, i, txtValue;
+                input = document.getElementById("Activity");
+                filter = input.value.toUpperCase();
+                table = document.getElementById("myTable");
+                tr = table.getElementsByTagName("tr");
+                for (i = 0; i < tr.length; i++) {
+                  td = tr[i].getElementsByTagName("td")[0];
+                  if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                      tr[i].style.display = "";
+                    } else {
+                      tr[i].style.display = "none";
+                    }
+                  }
+                }
+              }
+                 function countpage(pageid)
+                 {
+                     $("#pageid").val(pageid);
+                     $("#form").submit();
+                 }
+
+              function confirmAction(id) {
+                     let confirmAction = confirm("آیا از حذف اطمینان دارید");
+                     if (confirmAction) {
+                       window.open("/panel/DeleteNews/"+id);
+                     } else {
+                       alert("حذف لغو شد");
+                     }
+                   }
+          function myFunction() {
+            var copyText = document.getElementById("myInput");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999)
+            document.execCommand("copy");
+            alert("متن کپی شد : " + copyText.value);
+          }
+
+
+    </script>
+</main>
+

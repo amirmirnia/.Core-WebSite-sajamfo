@@ -1,0 +1,21 @@
+﻿body {
+}
+
+@media (min-width: 768px) {
+    .col-md-4 {
+        max-width: 100%;
+        direction: rtl;
+        margin-top: 0.5em;
+    }
+}
+#myInputPass{
+    flex:2;
+}
+.fa-eye,.fa-eye-slash {
+    font-size: 20px;
+    position: relative;
+    left: 1.4em;
+    top: 0.4em;
+    cursor: pointer;
+}
+

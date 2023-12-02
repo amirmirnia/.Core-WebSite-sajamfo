@@ -1,0 +1,627 @@
+﻿@model Data.TMU.Model.msc.ListMscUserViewModel
+@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.msc> _gmsc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.AndicatorUser> _gAndicatorUser
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+@using Core.TMU.Convertor
+
+
+@using System.Text.Encodings.Web;
+
+@{
+    ViewData["Title"] = " کارتابل " + @_user.FindUser(User.Identity.Name).FullName;
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<main role="main" class="main-content">
+    <div class="Header-Countainer mt-5">
+        دستور کار
+    </div>
+    @{
+        if (Model.Projrct.Count() != null)
+        {
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-12">
+                        <div class="row align-items-center my-4">
+
+                            <div class="col">
+
+                                <a href="/panel/Cartable/recive" type="button" class="btn btn-outline-info">دریافت شده </a>
+                                <a href="/panel/Cartable/send" type="button" class="btn btn-outline-dark">ارجاع شده</a>
+                                <div style="float: left;margin-right: 0.5em;">
+
+
+                                    <select id="selectyear" onchange="year()" class="form-control">
+                                        @{
+                                            for (int i = 0; i < 7; i++)
+                                            {
+                                                var year = (int.Parse(DateTime.Now.ToPeString("yyyy")) - i).ToString();
+                                                <option selected="@(ViewBag.year==year)" value="@year">@year</option>
+                                            }
+
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <form asp-action="Cartable" method="get" id="form">
+                            <input type="hidden" id="pageid" name="pageid" value="1" />
+                            <input type="hidden" id="year" name="year" value="1402" />
+                        </form>
+                        <!-- table -->
+                    <div class="card shadow">
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>ردیف</th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Activity" onkeyup="Activity()" placeholder="نام پروژه" title="نام پروژه">
+                                            </th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Sender" onkeyup="Sender()" placeholder="فرستنده" title="فرستنده">
+                                            </th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Reciver" onkeyup="Reciver()" placeholder="گیرنده" title="فرستنده">
+                                            </th>
+                                            <th>
+                                                <input class="form-control" type="text" id="status" onkeyup="status()" placeholder="وضعیت" title="وضعیت">
+                                            </th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Enddate" onkeyup="Enddate()" onclick="PersianDatePicker.Show(this,'@DateTime.Now.ToPeString("yyyy/MM/dd")');" placeholder="مهلت اجرا" title="مهلت اجرا">
+
+                                            </th>
+                                            <th>
+
+                                                <input class="form-control" type="text" id="date" onkeyup="date()" onclick="PersianDatePicker.Show(this,'@DateTime.Now.ToPeString("yyyy/MM/dd")');" placeholder="تاریخ" title="تاریخ">
+
+                                            </th>
+
+                                            <th>فرآیند</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="myTable">
+                                        @{
+                                            int k = 0;
+                                            foreach (var item in Model.Projrct)
+                                            {
+
+                                                if (item.reciver != item.sender)
+                                                {
+                                                    DateTime Dedline;
+                                                    try
+                                                    {
+                                                        Dedline = DateTime.Parse(item.deadline);
+
+                                                    }
+                                                    catch
+                                                    {
+                                                        var t = changeDate.Date(item.deadline, "28");
+                                                        Dedline = DateTime.Parse(t);
+                                                    }
+
+
+                                                    DateTime today = DateTime.Parse(DateTime.Now.ToPeString("yyyy/MM/dd"));
+                                                    var Result = Core.TMU.Convertor.ConvertTime.Compare(today, Dedline);
+                                                    k++;
+
+                                                    <tr id=@((item.view!=0)?" winknoti":"")>
+                                                        <td>@k</td>
+                                                        <td id="Activity">
+                                                            <p class="mb-0 text-muted"><strong>@item.Activity</strong></p>
+                                                        </td>
+
+                                                        @{
+                                                            if (item.sender == "System")
+                                                            {
+                                                                <td id="Sender">
+                                                                    <p class="mb-0 text-muted"><strong>سیستم</strong></p>
+                                                                    <small class="mb-0 text-muted"></small>
+                                                                </td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td id="Sender">
+                                                                    <p class="mb-0 text-muted"><strong>@_user.FindUser(item.author).FullName-@((int.Parse(_user.FindUser(item.author).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(item.sender).post)).RoleTitle:"پست ندارد")</strong></p>
+                                                                    <small class="mb-0 text-muted"></small>
+                                                                </td>
+                                                            }
+
+
+                                                        }
+                                                        @{
+                                                            if (item.reciver == "System")
+                                                            {
+                                                                <td id="Reciver">
+                                                                    <p class="mb-0 text-muted"><strong>سیستم</strong></p>
+                                                                    <small class="mb-0 text-muted"></small>
+                                                                </td>
+
+                                                            }
+                                                            else
+                                                            {
+                                                                <td id="Reciver">
+                                                                    <p class="mb-0 text-muted"><strong>@_user.FindUser(item.reciver).FullName-@((int.Parse(_user.FindUser(item.reciver).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(item.reciver).post)).RoleTitle:"پست ندارد")</strong></p>
+                                                                    <small class="mb-0 text-muted"></small>
+                                                                </td>
+                                                            }
+                                                        }
+
+
+                                                        @{
+                                                            if (item.Andicator != "0")
+                                                            {
+                                                                if (_msc.FindMscPersent(item.idmsc).status == true)
+                                                                {
+                                                                    <td id="status">به اتمام رسیده</td>
+                                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    if (_msc.GetStatusValidition(item.idmsc, true, true))
+                                                                    {
+                                                                        <td id="status">پروژه نیمه کاره است</td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td id="status">پروژه در دست اقدام است</td>
+                                                                    }
+                                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                                    //<td id=@((Result==1)?"ErrorTD":"")>@item.deadline</td>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <td>ثبت اندیکاتور نشده است</td>
+                                                                <td>@item.deadline</td>
+                                                            }
+                                                        }
+                                                        <td id="date">
+                                                            <p class="mb-0 text-muted"><strong>@item.DetaNews.ToPeString("yyyy/MM/dd")</strong></p>
+                                                        </td>
+
+
+                                                        <td>
+                                                            <input type="hidden" value="@item.letter_number" id="myInput">
+                                                            <button class="btn btn-outline-info" title="کپی کد رهگیری" onclick="copy('@item.letter_number')"><i class="fa fa-barcode"></i></button>
+
+                                                            @{
+                                                                if (item.sender == "System" && item.status == true)
+                                                                {
+                                                                    <form asp-action="SubmitGIS" method="get">
+                                                                        <input type="hidden" value="@item.letter_number" name="letternember">
+                                                                        <input type="hidden" value="@item.idmsc" name="idmsc">
+                                                                        <button type="submit" class="btn btn-outline-secondary" title="تایید"><i class="fa fa-check"></i></button>
+                                                                    </form>
+                                                                }
+                                                            }
+
+
+                                                            @{
+                                                                var modalshow = "#show-example-modal-lg" + item.idmsc;
+                                                                var modalidshow = "show-example-modal-lg" + item.idmsc;
+                                                            }
+                                                            <button type="button" class="btn btn-outline-secondary" data-toggle="modal" title="نمایش" data-target=@modalshow><i class="fa fa-eye"></i></button>
+                                                            <div class="modal fade" id=@modalidshow tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                                                <div class="modal-dialog modal-lg">
+                                                                    <div class="modal-content text-center">
+                                                                        <div class="list-group">
+                                                                            <a href="#" class="list-group-item list-group-item-action">اطلاعات @item.Activity</a>
+                                                                            @{
+                                                                                var msc = _gmsc.GetById(item.idmsc);
+                                                                            }
+                                                                            <h3><strong>فعالیت:</strong>@item.Activity</h3>
+                                                                            <h3><strong>موقعیت:</strong>@msc.Location</h3>
+                                                                            @{
+                                                                                switch (msc.Location)
+                                                                                {
+                                                                                    case "سری":
+                                                                                        <h3>سری :@msc.Seri</h3>
+                                                                                        break;
+
+                                                                                    case "پارسل":
+
+                                                                                        <h3>پارسل :@msc.parcel</h3>
+                                                                                        break;
+
+                                                                                    case "چاه":
+                                                                                        <h3>چاه :@msc.Well</h3>
+                                                                                        break;
+
+                                                                                }
+                                                                            }
+                                                                            <h3><strong>هزینه:</strong>@msc.Price</h3>
+                                                                            <h3><strong>واحد:</strong>@msc.Unit</h3>
+                                                                            <h3><strong>آخرین ارجاع:</strong>@msc.Description</h3>
+                                                                            <h3><strong>تاریخ:</strong>@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</h3>
+                                                                            <h3><strong>مهلت انجام کار:</strong>@item.deadline</h3>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            @{
+                                                                var Tree = _msc.ListMscUserbyid(item.idmsc);
+                                                                var modal = "#bd-example-modal-lg" + item.idmsc;
+                                                                var modalid = "bd-example-modal-lg" + item.idmsc;
+                                                            }
+                                                            <button type="button" class="btn btn-outline-secondary" data-toggle="modal" title="گردش کار" data-target=@modal><i class="fa fa-exchange"></i></button>
+                                                            <div class="modal fade" id=@modalid tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                                                <div class="modal-dialog modal-lg">
+                                                                    <div class="modal-content">
+                                                                        <div class="list-group">
+                                                                            <a href="#" class="list-group-item list-group-item-action">گردش کار @item.Activity</a>
+
+                                                                            <table class="table table-bordered">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th scope="col">ردیف</th>
+                                                                                        <th scope="col">فرستنده</th>
+                                                                                        <th scope="col">گیرنده</th>
+                                                                                        <th scope="col">حجم</th>
+
+                                                                                        <th scope="col">ضریب</th>
+                                                                                        <th scope="col">تاریخ ارسال</th>
+                                                                                        <th scope="col">رویت</th>
+                                                                                        <th scope="col">متن ارجاع</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    @{
+                                                                                        for (var i = 0; i < Tree.Count; i++)
+                                                                                        {
+
+                                                                                            <tr class=@((Tree[i].idsender==_user.FindUser(User.Identity.Name).IdCode || Tree[i].idreciver==_user.FindUser(User.Identity.Name).IdCode)?"table-success":"")>
+                                                                                                <th scope="row">@(i+1)</th>
+                                                                                                @{
+                                                                                                    if (Tree[i].idsender == "System")
+                                                                                                    {
+                                                                                                        <th>سیستم</th>
+
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        <th>@_user.FindUser(Tree[i].idsender).FullName-@((int.Parse(_user.FindUser(Tree[i].idsender).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idsender).post)).RoleTitle:"پست ندارد")</th>
+
+                                                                                                    }
+                                                                                                    if (Tree[i].idreciver == "System")
+                                                                                                    {
+                                                                                                        <th>سیستم</th>
+
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        <th>@_user.FindUser(Tree[i].idreciver).FullName-@((int.Parse(_user.FindUser(Tree[i].idreciver).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idreciver).post)).RoleTitle:"پست ندارد")</th>
+
+                                                                                                    }
+                                                                                                }
+                                                                                                <th>@Tree[i].Volume</th>
+                                                                                                <th>@Tree[i].factoroffer</th>
+                                                                                                <th>@Tree[i].Deta.ToPeString("dddd, dd, MMMM,yyyy")</th>
+                                                                                                <th>
+                                                                                                    @{
+                                                                                                        if (Tree[i].view == 1)
+                                                                                                        {
+                                                                                                            <i class="fa fa-remove"></i>
+                                                                                                        }
+                                                                                                        else
+                                                                                                        {
+                                                                                                            <i class="fa fa-check"></i>
+                                                                                                        }
+                                                                                                    }
+                                                                                                </th>
+                                                                                                <th>@Tree[i].Description</th>
+                                                                                            </tr>
+
+
+                                                                                        }
+                                                                                    }
+                                                                                </tbody>
+                                                                            </table>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            @{
+                                                                var progress = _msc.FindMscPersent(item.idmsc);
+                                                                if (progress != null)
+                                                                {
+                                                                    var PU = Core.TMU.Genarator.SpelitTag.tag(progress.PercentUser);
+                                                                    var P = Core.TMU.Genarator.SpelitTag.tag(progress.Percent);
+
+                                                                    if (PU.Count() + 1 != P.Count() + 1)
+                                                                    {
+                                                                        <button type="button" title="در انتظار تایید" disabled class="btn btn-outline-danger" data-toggle="modal"><i class="fa fa-spinner"></i></button>
+
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        var modalpro = "#bd-example-modal-lgpro" + item.idmsc;
+                                                                        var modalproid = "bd-example-modal-lgpro" + item.idmsc;
+
+                                                                        if (PU.Length > 1)
+                                                                        {
+                                                                            <button type="button" class="btn btn-outline-danger" data-toggle="modal" title="پیشرفت کار" data-target=@modalpro><i class="fa fa-sliders"></i></button>
+                                                                            <div class="modal fade" id=@modalproid tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                                                                <div class="modal-dialog modal-lg">
+                                                                                    <div class="modal-content">
+                                                                                        <div class="list-group">
+                                                                                            <a href="#" class="list-group-item list-group-item-action">درصد پیشرفت @item.Activity</a>
+
+                                                                                            <table class="table table-bordered">
+                                                                                                <thead>
+                                                                                                    <tr>
+                                                                                                        <th scope="col">ردیف</th>
+                                                                                                        <th scope="col">پیشرفت کار درخواستی</th>
+                                                                                                        <th scope="col">پیشرفت کار تایید شده</th>
+                                                                                                        <th scope="col">واحد کل</th>
+                                                                                                        <th scope="col">واحد درخواستی</th>
+                                                                                                        <th scope="col">واحد تایید شده</th>
+                                                                                                        <th scope="col">وضعیت نهایی</th>
+
+                                                                                                    </tr>
+                                                                                                </thead>
+                                                                                                <tbody>
+                                                                                                    @{
+
+                                                                                                        for (var i = 1; i < PU.Length; i++)
+                                                                                                        {
+                                                                                                            var progU = "width:" + ((100 * float.Parse(PU[i])) / float.Parse(_gmsc.GetById(progress.Idmsc).Volume)).ToString() + "%";
+                                                                                                            var prog = "width:" + ((100 * float.Parse(P[i])) / float.Parse(_gmsc.GetById(progress.Idmsc).Volume)).ToString() + "%";
+
+                                                                                                            <tr>
+                                                                                                                <th scope="row">@(i+1)</th>
+                                                                                                                <th>
+                                                                                                                    <div class="progress">
+                                                                                                                        <div class="progress-bar bg-success" role="progressbar" style=@progU aria-valuenow="@PU[i]" aria-valuemin="@((P[i]!=null||P[i]!="0")?P[i]:0)" aria-valuemax="@_gmsc.GetById(progress.Idmsc).Volume">@(100*float.Parse(PU[i])/ float.Parse(_gmsc.GetById(progress.Idmsc).Volume))</div>
+                                                                                                                    </div>
+                                                                                                                </th>
+                                                                                                                <th>
+                                                                                                                    <div class="progress">
+                                                                                                                        <div class="progress-bar bg-info" role="progressbar" style=@prog aria-valuenow="@P[i]" aria-valuemin="@((P[i]!=null||P[i]!="0")?P[i]:0)" aria-valuemax="@_gmsc.GetById(progress.Idmsc).Volume">@(100*float.Parse(P[i])/ float.Parse(_gmsc.GetById(progress.Idmsc).Volume))</div>
+                                                                                                                    </div>
+                                                                                                                </th>
+                                                                                                                <th>@_gmsc.GetById(progress.Idmsc).Volume</th>
+                                                                                                                <th>@PU[i]</th>
+                                                                                                                <th>@P[i]</th>
+                                                                                                                <th>@((progress.status==true)?"اتمام پروژه":"پروژه ادامه دارد")</th>
+                                                                                                            </tr>
+
+
+                                                                                                        }
+                                                                                                    }
+                                                                                                </tbody>
+                                                                                            </table>
+
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>s
+                                                                            </div>
+                                                                        }
+
+
+                                                                    }
+                                                                }
+                                                            }
+                                                            @{
+
+                                                                var MU = _msc.GetMscUserbyid(item.IdMU);
+                                                                var Mp = _msc.FindMscPersent(item.idmsc);
+                                                                //if (Mp != null && Mp.status == true)
+                                                                //{
+
+                                                                //    <button disabled type="button" class="btn btn-outline-info">پروژه به اتمام رسید</button>
+
+                                                                //}
+
+                                                                if (MU.idreciver == User.Identity.Name)
+                                                                {
+                                                                    if (MU.idreciver != "System" && MU.idsender != "System")
+                                                                    {
+
+                                                                    }
+                                                                    if (item.Isclose == false)
+                                                                    {
+                                                                        <a href="/Panel/UpdateProject/@item.letter_number/@UrlEncoder.Default.Encode(item.Activity.Replace(" ", "-"))/@item.idmsc" type="button" class="btn btn-outline-info" title="ویرایش"><i class="fa fa-edit"></i></a>
+
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <form asp-action="Submitproject" method="get">
+                                                                            <input type="hidden" value="@item.letter_number" name="letternember">
+                                                                            <input type="hidden" value="@item.idmsc" name="idmsc">
+                                                                            <button type="submit" class="btn btn-outline-secondary" title="تایید"><i class="fa fa-check"></i></button>
+                                                                        </form>
+                                                                        //<a href="/Panel/UpdateProject/@item.letter_number/@UrlEncoder.Default.Encode(item.Activity.Replace(" ", "-"))/@item.idmsc" type="button" class="btn btn-outline-info" title="ویرایش"><i class="fa fa-edit"></i></a>
+
+                                                                    }
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    if (progress != null)
+                                                                    {
+                                                                        if (progress.status != true)
+                                                                        {
+
+                                                                            <button disabled type="button" class="btn btn-outline-secondary" title="ارجاع شده"><i class="fa fa-rocket"></i></button>
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+
+
+                                                        </td>
+                                                    </tr>
+                                                }
+
+
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <nav aria-label="Table Paging" class="my-3">
+                            <ul class="pagination justify-content-end mb-0">
+                                <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                                @{
+
+
+                                    for (int i = 1; i <= Model.CountPage; i++)
+                                    {
+                                        <li class=@(Model.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpage(@i)">@i</a></li>
+
+                                    }
+
+                                }
+                                <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                            </ul>
+                        </nav>
+                    </div> <!-- .col-12 -->
+            </div> <!-- .row -->
+        </div> <!-- .container-fluid -->
+        }
+        else
+        {
+            <p class="alert1">تا حالا نامه ای در سیستم موجود نیست</p>
+        }
+    }
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <script>
+        function year(year)
+        {
+            var selectBox = document.getElementById("selectyear");
+            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+            $("#year").val(selectedValue);
+            $("#form").submit();
+        }
+         function Activity() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Activity");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[1];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function Sender() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Sender");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[2];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function Reciver() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Reciver");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[3];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function status() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("status");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[4];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function Enddate() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Enddate");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[5];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function date() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("date");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[6];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+
+
+                  function countpage(pageid)
+                  {
+                    $("#pageid").val(pageid);
+                    $("#form").submit();
+
+                 }
+
+    </script>
+</main>
+

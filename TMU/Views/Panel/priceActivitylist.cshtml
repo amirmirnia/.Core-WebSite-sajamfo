@@ -1,0 +1,226 @@
+﻿@model Data.TMU.Model.msc.ListpricelistViewModel
+@inject Core.TMU.Service.ITMUService.IUser user
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+
+@{
+    ViewData["Title"] = "لیست دسته فعالیت ها";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<main role="main" class="main-content">
+    <div class="Header-Countainer mt-5">
+        لیست دسته فعالیت ها
+    </div>
+    @{
+        if (Model.priceLists.Count() != null)
+        {
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-12">
+                        <div class="row align-items-center my-4">
+
+                            <div class="col">
+                                @{
+                                    if (Permision.CheakPermissionAllow(1009, user.FindUser(User.Identity.Name).Id) == true)
+                                    {
+                                        <a href="/panel/pricelist" type="button" class="btn btn-outline-info">لیست فهرست بها </a>
+                                        <a href="/panel/CreatPriceList" type="button" class="btn btn-outline-info">ثبت فهرست بها </a>
+                                        <a href="/panel/CreatPriceActivity" type="button" class="btn btn-outline-info">ثبت دسته فعالیت </a>
+                                    }
+                                }
+                                <div style="float: left;margin-right: 0.5em;">
+                                    <select id="selectyear" onchange="year()" class="form-control">
+                                        @{
+                                            for (int i = 0; i < 7; i++)
+                                            {
+                                                var year = (int.Parse(DateTime.Now.ToPeString("yyyy")) - i).ToString();
+                                                <option selected="@(ViewBag.year==year)" value="@year">@year</option>
+                                            }
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <form asp-action="pricelist" method="get" id="form">
+                            <input type="hidden" id="pageid" name="pageid" value="1" />
+                            <input type="hidden" id="year" name="year" value="@DateTime.Now.ToPeString("yyyy")" />
+                        </form>
+                        <!-- table -->
+                    <div class="card shadow">
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>ردیف</th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Activity" onkeyup="Activity()" placeholder=" عملیات" title=" عملیات">
+                                            </th>
+                                            <th>
+
+                                                <input class="form-control" type="text" id="date" onkeyup="date()" onclick="PersianDatePicker.Show(this,'@DateTime.Now.ToPeString("yyyy/MM/dd")');" placeholder="تاریخ" title="تاریخ">
+
+                                            </th>
+                                            <th>
+                                                <input class="form-control" type="text" id="Autour" onkeyup="Autour()" placeholder="ثبت کننده" title="ثبت کننده">
+                                            </th>
+                                            @{
+                                                if (Permision.CheakPermissionAllow(1009, user.FindUser(User.Identity.Name).Id) == true)
+                                                {
+                                                    <th>فرآیند</th>
+                                                }
+                                            }
+
+
+                                        </tr>
+                                    </thead>
+                                    <tbody id="myTable">
+                                        @{
+                                            int k = 0;
+                                            foreach (var item in Model.priceLists)
+                                            {
+                                                k++;
+
+                                                <tr>
+                                                    <td>@k</td>
+                                                    <td id="Activity">
+                                                        <p class="mb-0 text-muted"><strong>@item.Activity</strong></p>
+                                                    </td>
+                                                 
+                                                    <td id="date">
+                                                        <p class="mb-0 text-muted"><strong>@item.DetaNews.ToPeString("yyyy/MM/dd")</strong></p>
+                                                    </td>
+                                                    <td id="Autour">
+                                                        <p class="mb-0 text-muted"><strong>@user.FindUser(item.IdCode).FullName</strong></p>
+                                                    </td>
+
+                                                    @{
+                                                        if (Permision.CheakPermissionAllow(1009, user.FindUser(User.Identity.Name).Id) == true)
+                                                        {
+                                                            <td>
+                                                                <a href="/panel/UpdatePriceActivity/@item.IdPL" class="btn btn-outline-danger" title="ویرایش"><i class="fa fa-edit"></i></a>
+                                                                <a href="" onclick="confirmDelete(@item.IdPL)" class="btn btn-outline-info" title="حذف"><i class="fa fa-remove"></i></a>
+                                                            </td>
+                                                        }
+                                                    }
+
+
+
+                                                </tr>
+
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <nav aria-label="Table Paging" class="my-3">
+                            <ul class="pagination justify-content-end mb-0">
+                                <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                                @{
+
+
+                                    for (int i = 1; i <= Model.CountPage; i++)
+                                    {
+                                        <li class=@(Model.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpage(@i)">@i</a></li>
+
+                                    }
+
+                                }
+                                <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                            </ul>
+                        </nav>
+                    </div> <!-- .col-12 -->
+            </div> <!-- .row -->
+        </div> <!-- .container-fluid -->
+        }
+        else
+        {
+            <p class="alert1">تا حالا فهرست بهایی در سیستم موجود نیست</p>
+        }
+    }
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <script>
+        function year(year)
+        {
+            var selectBox = document.getElementById("selectyear");
+            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+            $("#year").val(selectedValue);
+            $("#form").submit();
+        }
+
+         function Activity() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Activity");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[1];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+
+         function date() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("date");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[2];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function Autour() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("Autour");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("myTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[3];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+
+                  function countpage(pageid)
+                  {
+                    $("#pageid").val(pageid);
+                    $("#form").submit();
+
+                 }
+                  function confirmDelete(id) {
+           let confirmAction = confirm("آیا از حذف اطمینان دارید");
+           if (confirmAction) {
+             window.open("/panel/DeleteActivityPrice/"+id);
+           } else {
+             alert("حذف لغو شد");
+           }
+         }
+    </script>
+</main>

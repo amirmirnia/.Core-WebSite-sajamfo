@@ -1,0 +1,179 @@
+﻿@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor accessor
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.User.Useronline> _gUON
+
+
+@{
+    var listuseronline = _gUON.Get(p => p.IsOnline == true);
+}
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>@ViewData["Title"]</title>
+    @await Html.PartialAsync("_PanelStyle")
+
+</head>
+<body class="vertical  light rtl ">
+    <input type="hidden" id="nameuser" value="@(_user.FindUser(User.Identity.Name).FullName)" />
+    <input type="hidden" id="postuser" value="@((int.Parse(_user.FindUser(User.Identity.Name).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(User.Identity.Name).post)).RoleTitle:"پست ندارد")" />
+
+    <div id="loaderPage">
+        <img src="~/Img/More/Loader.png" alt="Loading...">
+        <h2>لطفا صبور باشید...</h2>
+    </div>
+    <input type="hidden" id="Idcode" value="@User.Identity.Name"/>
+     <p id="conecttoserver"></p>
+    
+
+
+
+
+    <div class="bodypanel">
+        <div class="header">
+            <div class="header1">
+                <div class="headerinfo">
+                    <img src=@((_user.FindUser(User.Identity.Name).UserAvatar!=null)?"/Img/Userprofile/"+@_user.FindUser(User.Identity.Name).UserAvatar:"/Img/Userprofile/DefultAvatar.jpg") alt="@_user.FindUser(User.Identity.Name).FullName">
+                    <div>
+                        <p id="nametitel">@_user.FindUser(User.Identity.Name).FullName</p>
+                        <p id="posttitel">@((int.Parse(_user.FindUser(User.Identity.Name).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(User.Identity.Name).post)).RoleTitle:"پست ندارد")</p>
+                    </div>
+
+                </div>
+                <div class="headerSetting">
+                    <a href="/Panel/ProfileHome">
+                        <div id="headerSetting1">
+                            @*                            <i class="fa fa-address-card"></i>
+                            *@                            پروفایل
+                        </div>
+                    </a>
+                    <a href="/Panel/profilesettings">
+                        <div id="headerSetting2">
+                            @*                            <i class="fa fa-cogs"></i>
+                            *@                            تنظیمات
+                        </div>
+                    </a>
+                    <a href="/Logout">
+                        <div id="headerSetting3">
+                            @*                            <i class="fa fa-sign-out"></i>
+                            *@
+                            خروج
+                        </div>
+                    </a>
+
+                </div>
+
+            </div>
+            <div class="header3">
+                <div class="headerdata">
+                    <span>امروز:</span>
+                    <p>@DateTime.Now.ToPeString("dddd, dd, MMMM,yyyy")</p>
+                </div>
+            </div>
+            <div class="header3">
+                <div class="headerdata">
+                    <span>قرارداد:</span>
+                    @{
+                        if (Core.TMU.FileSite.IsExist.ExistFile("gharardad.pdf", @"wwwroot\file\") == true)
+                        {
+                            <a href="~/file/gharardad.pdf">دانلود قرارداد</a>
+                        }
+                        else
+                        {
+                            <p>فایلی قرار داده نشده است</p>
+                        }
+                    }
+
+                </div>
+            </div>
+
+            @{
+                //    if (_user.FindUser(User.Identity.Name).IsAdmin == true || int.Parse(_user.FindUser(User.Identity.Name).post) != 0)
+                //    {
+                <div class="header2">
+                    <ul>
+                        <a href="/panel"><i class="fa fa-television"></i>
+                        <li>میزکار</li> </a>
+                        @{
+                            //if (_user.FindUser(User.Identity.Name).IsNormalUser == false && _user.FindUser(User.Identity.Name).IsAdmin == true)
+                            //{
+
+                            //    <a href="/panel/ListUser"><i class="fa fa-group"></i><li>لیست اعضا</li></a>
+                            //    <a href="/panel/permision"><i class="fa fa-eye"></i><li>ایجاد دسترسی</li></a>
+                            //}
+                            if (Permision.CheakPermissionAllow(2, _user.FindUser(User.Identity.Name).Id) == true)
+                            {
+
+                                <a href="/panel/ListUser"><i class="fa fa-group"></i>
+                                <li>مدیریت پرسنل</li></a>
+                            }
+                            if (Permision.CheakPermissionAllow(1, _user.FindUser(User.Identity.Name).Id) == true)
+                            {
+
+                                <a href="/panel/permision"><i class="fa fa-eye"></i>
+                                <li>تعریف و تغییر نقشهای پرسنلی</li></a>
+                            }
+                        }
+                        @{
+                            if (Permision.CheakPermissionAllow(5, _user.FindUser(User.Identity.Name).Id) == true)
+                            {
+
+                                <a href="/panel/ListGallery" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-image"></i>
+                                <li>گالری</li></a>
+                            }
+
+
+                            <a href="/panel/pricelist" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-database"></i>
+                            <li> فهرست بها</li></a>
+
+                            if (Permision.CheakPermissionAllow(3, _user.FindUser(User.Identity.Name).Id) == true)
+                            {
+
+                                <a href="/panel/Creatproject" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-plus"></i>
+                                <li>تعریف پروژه جدید</li></a>
+                            }
+                        }
+                        <a href="/panel/Cartable/recive" id=@((_msc.GetMscUser(_user.FindUser(User.Identity.Name).IdCode,1).Item2.Count>0)?" winknoti":"") style="" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-inbox"></i>
+                        <li>دستورکار@*<span>@_msc.GetMscUserr(_user.FindUser(User.Identity.Name).IdCode , true,false).Item1</span>*@</li></a>
+                        @if (Permision.CheakPermissionAllow(4, _user.FindUser(User.Identity.Name).Id) == true)
+                        {
+                            var year = (int.Parse(DateTime.Now.ToPeString("yyyy"))).ToString();
+                            <a href="/panel/Statusface?year=@year&Contractor=@User.Identity.Name" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null || _msc.IsEmptyMscPersent()==true)?"disabled":"" )><i class="fa fa-handshake-o"></i>
+                            <li> صورت وضعیت</li> </a>
+                        }
+                        @{
+                            //if (Permision.CheakPermissionAllow(3, @_user.FindUser(User.Identity.Name).Id) == true)
+                            //{
+
+                            //<a href="/Panel/ListUnfinished" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-hourglass-half"></i>
+                            //<li>پروژه های ناتمام</li></a>
+                            //}
+                            if (Permision.CheakPermissionAllow(4, @_user.FindUser(User.Identity.Name).Id) == true || Permision.CheakPermissionAllow(3, @_user.FindUser(User.Identity.Name).Id) == true || Permision.CheakPermissionAllow(8, @_user.FindUser(User.Identity.Name).Id) == true)
+                            {
+
+                                <a href="/Panel/Project" class=@((_user.FindUser(User.Identity.Name).post=="0" || _user.FindUser(User.Identity.Name).level==null)?"disabled":"")><i class="fa fa-hdd-o"></i>
+                                <li>لیست پروژه ها</li></a>
+                            }
+                        }
+                        <div><p>در صورت بروز مشکل با ادمین تماس بگیرید</p></div>
+                    </ul>
+                </div>
+                //}
+                //else
+                //{
+                //    <p>پست شما در سیستم درج نشده است</p>
+                //}
+
+            }
+
+
+        </div>
+        <div class="bodypanel">
+            @RenderBody()
+        </div>
+    </div>
+    @await Html.PartialAsync("_PanelFooter");
+    @RenderSection("Scrript", false)
+</body>
+</html>

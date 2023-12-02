@@ -1,0 +1,287 @@
+﻿@model Data.TMU.Model.msc.Print
+@using Core.TMU.Convertor
+@using Core.TMU.Genarator
+@inject Core.TMU.Service.ITMUService.IUser user
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.msc> _gmsc
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+
+
+@{
+    ViewData["Title"] = "صورت وضعیت ";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    var count = Model.item.Count();
+    List<Data.TMU.Model.msc.statusfaceprint> STL = new List<Data.TMU.Model.msc.statusfaceprint>();
+
+    for (int p = 1; p < count + 1; p++)
+    {
+        Data.TMU.Model.msc.statusfaceprint statusfaceprint = new Data.TMU.Model.msc.statusfaceprint();
+        STL.Add(statusfaceprint);
+
+    }
+
+}
+
+<div id="loader">
+    <div class="loader"></div>
+    <div class="textloader">
+        <p>در حال صدور صورت وضعیت</p>
+    </div>
+</div>
+<section id="body">
+    <main role="main" class="main-content">
+        <form asp-action="Print" method="post" id="form">
+            <input type="hidden" name="namefile" id="leternumber" value="@Model.filename" />
+        </form>
+        <section id="content">
+            <div class="headerFactor">
+                <div class="Date">
+                    <table>
+                        <tr>
+                            <td>67100</td>
+                            <td>@user.FindUser(_msc.GetMscUser(Model.idmsc , true, true).idsender).CodePerseneli</td>
+                            <td>@((_msc.MaxletternemberAU()).ToString())</td>
+                            <td>شماره</td>
+                        </tr>
+                        <tr>
+                            <td>1402</td>
+                            <td>@DateTime.Now.ToPeString("MMMM")</td>
+                            <td>@DateTime.Now.ToPeString("dd")</td>
+                            <td>تاریخ</td>
+                        </tr>
+
+
+                    </table>
+                </div>
+                <div class="logo">
+                    @*<img src="~/Img/More/MSClogo.png" title="فولاد مبارکه"/>
+                    *@
+                </div>
+                <div class="name" style="width: auto;">
+                    <p><b>فرم صورت وضعیت انجام کار</b></p>
+                    <p><b>فضای سبز فولاد مبارکه</b></p>
+                </div>
+            </div>
+
+            <div class="bodytabelfactor mt-5">
+
+                <div class="mb-5">
+                    <table>
+                        <tr id="headtable">
+                            <th rowspan="@(count+1)"><b>کار درخواستی</b></th>
+                            <th>ردیف</th>
+                            <th>فعالیت</th>
+                            <th>شماره ابلاغ</th>
+                            <th>تاریخ ابلاغ</th>
+                            <th>واحد کار</th>
+                            <th>قیمت واحد (ریال)</th>
+                            <th>حجم کار</th>
+                            <th>قیمت تخمینی (ریال)</th>
+                            <th>محل اجرا</th>
+                            <th>مهلت اجرا</th>
+
+                        </tr>
+                        @{
+                            int i = 0;
+                            var totalsum = 0.0;
+                            //var idmsc = "";
+                            foreach (var item in Model.item)
+                            {
+                                i++;
+                                //idmsc += item + "-";
+                                var mscpersent = _msc.FindMscPersent(item);
+                                var listpersent = SpelitTag.tag(mscpersent.Percent);
+                                var listpersentUser = SpelitTag.tag(mscpersent.PercentUser);
+                                var msc = _gmsc.GetById(item);
+                                var sender = _msc.GetMscUser(Model.idmsc, true, true).idsender;
+                                totalsum += (float.Parse(msc.OnePrice.Replace("٬", "")) * float.Parse(msc.Volume) * float.Parse(msc.factoroffer));
+                                var totalpersent = 0.0;
+                                for (int j = 0; j < listpersent.Count() - 1; j++)
+                                {
+                                    totalpersent += float.Parse(listpersent[j]);
+                                }
+                                var numbereblagh = DateTime.Now.ToPeString("yyyy") + "" + msc.Idmsc;
+                                var t = float.Parse(msc.Volume) - totalpersent;
+
+                                STL[i - 1].Leternumber = "67100-" + user.FindUser(_msc.GetMscUser(Model.idmsc, true, true).idsender).CodePerseneli + "-" + ((_msc.MaxletternemberAU()).ToString());
+                                STL[i - 1].activity = msc.Activity;
+                                STL[i - 1].numberEblagh = numbereblagh;
+                                STL[i - 1].dateEblagh = @msc.DetaNews.ToPeString("yyyy/MM/dd");
+                                STL[i - 1].volume = (Math.Round(t, 1)).ToString();
+                                STL[i - 1].volumeunit = msc.Unit;
+                                STL[i - 1].location = msc.Location;
+                                STL[i - 1].deadline = msc.deadline;
+                                //STL[i - 1].priceOne = (float.Parse(PersiannumberTOenglish.PersianToEnglish(msc.Price.Replace("٬", ""))) / (float.Parse(msc.Volume.Replace(".", ","))) / float.Parse(msc.factoroffer.Replace(".", ","))).ToString();
+                                STL[i - 1].priceOne = msc.OnePrice;
+                                STL[i - 1].price = (float.Parse(msc.OnePrice) * float.Parse(msc.Volume) * float.Parse(msc.factoroffer)).ToString();
+                                STL[i - 1].description = _msc.GetMscUser(msc.Idmsc, true, true).Description;
+
+
+                                <tr>
+                                    <td>@i</td>
+                                    <td>@msc.Activity</td>
+                                    <td>@numbereblagh</td>
+                                    <td>@msc.DetaNews.ToPeString("yyyy/MM/dd")</td>
+                                    <td>@msc.Unit </td>
+                                    <td>@(float.Parse(msc.OnePrice).ToString("N0"))</td>
+                                    <td>@((Math.Round(t,1)).ToString())</td>
+                                    <td>@((float.Parse(msc.OnePrice) * float.Parse(msc.Volume)*float.Parse(msc.factoroffer)).ToString("N0"))</td>
+                                    <td>@msc.Location </td>
+
+                                    <td>@msc.deadline</td>
+                                </tr>
+                            }
+                            <tr class="totaltr">
+                                <td colspan="5"></td>
+                                <td colspan="2">مجموع</td>
+                                <td colspan="4">@totalsum.ToString("N0")</td>
+                            </tr>
+                        }
+
+
+                    </table>
+                </div>
+
+                <div class="Final">
+                    <table>
+                        <tr id="headtable">
+                            <th rowspan="@(count+1)"><b>کار انجام شده</b></th>
+                            <th>ردیف</th>
+                            <th>فعالیت</th>
+                            @*<th>کار انجام شده </th>*@
+                            <th>واحد کار </th>
+                            <th>قیمت واحد  (ریال)</th>
+                            <th>کار تایید شده </th>
+                            <th>قیمت  (ریال)</th>
+                            <th>ناظر </th>
+                            <th>تاریخ تایید </th>
+                            <th>محل اجرا</th>
+
+                        </tr>
+
+                        @{
+                            int k = 0;
+                            var totalsum2 = 0.0;
+                            //var idmsc = "";
+                            foreach (var item in Model.item)
+                            {
+                                k++;
+                                //idmsc += item + "-";
+                                var mscpersent = _msc.FindMscPersent(item);
+                                var listpersent = SpelitTag.tag(mscpersent.Percent);
+                                var listpersentUser = SpelitTag.tag(mscpersent.PercentUser);
+                                var msc = _gmsc.GetById(item);
+                                var sender = _msc.GetMscUser(Model.idmsc, true, true).idreciver;
+
+                                var totalpersent = 0.0;
+                                for (int j = 0; j < listpersent.Count() - 1; j++)
+                                {
+                                    totalpersent += float.Parse(listpersent[j]);
+
+                                }
+                                STL[k - 1].listpersent = listpersent.Last();
+                                STL[k - 1].listpersentUser = listpersentUser.Last();//بدست آوردن ناظر
+                                Data.TMU.User.Role role = new Data.TMU.User.Role();
+                                role = Permision.GetPermitionPrintRole();
+                                STL[k - 1].FullnameReciver = user.FindUser(_msc.GetUserSenderinMscuserToUserWhitRole(role, Model.idmsc)).FullName;// ناظر
+                                STL[k - 1].Fullnamefinallapprov = Model.SingnacharFinalapprovName;
+                                STL[k - 1].DateConfraim = _msc.FindMscPersent(msc.Idmsc, sender).DetaNews.ToPeString("yyyy/MM/dd");
+                                totalsum2 += (float.Parse(msc.OnePrice.Replace("٬", "")) * float.Parse(listpersent.Last()) * float.Parse(msc.factoroffer));
+                                //totalsum2 += (float.Parse(PersiannumberTOenglish.PersianToEnglish(msc.OnePrice.Replace("٬", ""))) * float.Parse(listpersent.Last()) * float.Parse(msc.factoroffer));
+
+                                <tr>
+                                    <td>@k</td>
+                                    <td>@msc.Activity</td>
+                                    @*<td> @listpersentUser.Last()</td>*@
+                                    <td>@msc.Unit </td>
+                                    @* <td>@((float.Parse(PersiannumberTOenglish.PersianToEnglish(msc.Price.Replace("٬", "")))/float.Parse( listpersent.Last().Replace(".", ","))/float.Parse(msc.factoroffer.Replace(".", ","))).ToString("N0"))</td>*@
+                                    <td>@(float.Parse(msc.OnePrice).ToString("N0"))</td>
+
+                                    <td>@listpersent.Last()</td>
+                                    <td>@((float.Parse(msc.OnePrice) * float.Parse(listpersent.Last())*float.Parse(msc.factoroffer)).ToString("N0")) </td>
+                                    <td>@user.FindUser(_msc.GetUserSenderinMscuserToUserWhitRole(role,Model.idmsc)).FullName</td>
+                                    <td>@_msc.FindMscPersent(msc.Idmsc, sender).DetaNews.ToPeString("yyyy/MM/dd")</td>
+                                    <td>@msc.Location </td>
+                                </tr>
+
+                            }
+                            <tr class="totaltr">
+                                <td colspan="5"></td>
+                                <td colspan="2">مجموع</td>
+                                <td colspan="4">@totalsum2.ToString("N0")</td>
+                            </tr>
+                        }
+
+                    </table>
+                </div>
+            </div>
+
+            <div class="signuchre">
+
+                <div class="namesi">
+                    <p>مهر و امضا  @Model.SingnacharName</p>
+                    @DateTime.Now.ToPeString("yyyy/MM/dd")
+                </div>
+                <div class="namesi">
+                    <p>مهر و امضا  @Model.SingnacharFinalapprovName</p>
+                    @DateTime.Now.ToPeString("yyyy/MM/dd")
+                </div>
+
+            </div>
+        </section>
+        <section>
+            <button id="print" onclick="printdiv()">پرینت</button>
+
+        </section>
+        @{
+            await _msc.AddInStutusfacsprint(STL);
+        }
+
+    </main>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+
+
+    function printdiv()
+       {
+           var printContents = document.getElementById('content').innerHTML;
+           var originalContents = document.body.innerHTML;
+           document.body.innerHTML = printContents;
+           window.print();
+           document.body.innerHTML = originalContents;
+       }
+             var body = document.getElementById("body");
+             body.style.position="fixed"
+             PDF();
+             setTimeout(clearloader, 8000);
+           function clearloader(){
+             var loader = document.getElementById("loader");
+             loader.style.display="none",
+             body.style.position="inherit"
+               }
+             function PDF()
+              {
+                  var element = document.getElementById("leternumber").value;
+                  var content = document.getElementById("content");
+
+                  const options = {
+                       filename: element+".pdf",
+                       margin: 0.2,
+                       image: { type: 'jpeg', quality: 0.98 },
+                       html2canvas: { scale: 2 },
+                       jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                       };
+
+
+                  html2pdf().from(content).set(options).save(element+".pdf");
+                   //setTimeout(submit, 5000);
+
+              }
+               function submit(){
+                   $("#form").submit();
+               }
+
+</script>
+

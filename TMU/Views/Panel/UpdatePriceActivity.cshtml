@@ -1,0 +1,44 @@
+﻿@model Data.TMU.Model.msc.PriceList
+@inject Core.TMU.Service.ITMUService.IUser user
+@{
+    ViewData["Title"] = "اپدیت دسته فعالیت";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+<section>
+    <form asp-action="UpdatePriceActivity" method="post">
+        <div class="formpanel">
+            <div class="headerform">
+                <p>اپدیت دسته فعالیت</p>
+            </div>
+            <input asp-for="IdCode" type="hidden" value=@User.Identity.Name>
+            <input asp-for="Year" type="hidden" value=@DateTime.Now.ToPeString("yyyy")>
+            <input asp-for="CaregouryActivity" type="hidden" value="-">
+            <input asp-for="factoroffer" type="hidden" value="-">
+            <input asp-for="unit" type="hidden" value="-">
+            <input asp-for="month" type="hidden" value="-">
+            <input asp-for="Price" type="hidden" value="-">
+            <input asp-for="TotalPrice" type="hidden" value="-">
+            <input asp-for="value" type="hidden" value="-">
+            <input asp-for="IdPL" type="hidden">
+            <div class="bodyF">
+
+                <div class="bodyform">
+                    <div>
+                        <label>زمان ایجاد</label>
+                        <input type="text" asp-for="DetaNews" disabled value="@DateTime.Now.ToPeString("dddd, dd, MMMM,yyyy")" class="form-control">
+
+                    </div>
+                    <div>
+                        <label>فعالیت</label>
+                        <input type="text" class="form-control Money" asp-for="Activity">
+                        <span asp-validation-for="Activity"></span>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-outline-secondary m-3">ویرایش</button>
+        </div>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+</section>
+

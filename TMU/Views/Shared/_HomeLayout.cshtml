@@ -1,0 +1,54 @@
+﻿@inject Core.TMU.Service.ITMUService.IUser _user
+@using Core.TMU.Convertor
+@using Microsoft.AspNetCore.Authorization;
+
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <link rel="icon" type="image/ico" href="/Img/More/favicon.ico">
+    <title>@ViewData["Title"]</title>
+    @await Html.PartialAsync("_HomeStyle")
+</head>
+
+<body>
+     <header>
+        <div class="header">
+            <div class="headerlogo">
+               <img src="~/Img/More/logo2.png" alt="سجام فو"> سجام فو
+            </div>
+            <div class="headerbody">
+                <ul>
+                    <a href="#" title=""><li>خانه</li></a>
+                    <a href="https://sajamfo.ir/Login" title="سامانه مدیریت پروژه"><li>سمپافو</li></a>
+                    <a href="http://171.22.25.120/signin" title="سامانه مدیریت داده های مکانی"><li>سامدم فو</li></a>
+                    <a href="https://myavl.ir" title="سامانه نظارت آبیاری"><li>سنا فو</li></a>
+                    <a href="/MoreGallery" title="گالری تصاویر"><li>گالری</li></a>
+                    <a href="#" title=""><li>مقالات</li></a>
+                </ul>
+            </div>
+            <div class="headercall">
+                @{
+                    if(User.Identity.IsAuthenticated){
+                        <a href="/panel"><p>@_user.FindUser(User.Identity.Name).FullName</p></a>
+                    }
+                    else{
+                    <p>فولاد مبارکه</p>
+                }
+                }
+                
+            </div>
+        </div>
+    </header>
+        @RenderBody()    
+   
+
+    @await Html.PartialAsync("_HomeScript")
+
+</body>
+
+</html>
+

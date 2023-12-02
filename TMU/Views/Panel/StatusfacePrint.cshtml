@@ -1,0 +1,173 @@
+﻿@model List<Data.TMU.Model.msc.statusfaceprint>
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@using Core.TMU.Convertor
+@using Core.TMU.Genarator
+@{
+    ViewData["Title"] = "مشاهده";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    var leter = Core.TMU.Genarator.SpelitTag.tag(Model[0].Leternumber);
+}
+
+<main role="main" class="main-content">
+    <section id="content">
+        <div class="headerFactor">
+            <div class="Date">
+                <table>
+                    <tr>
+                        <td>@leter[0]</td>
+                        <td>@leter[1]</td>
+                        <td>@leter[2]</td>
+                        <td>شماره</td>
+                    </tr>
+                    <tr>
+                        <td>1402</td>
+                        <td>@DateTime.Now.ToPeString("MMMM")</td>
+                        <td>@DateTime.Now.ToPeString("dd")</td>
+                        <td>تاریخ</td>
+                    </tr>
+
+
+                </table>
+            </div>
+            <div class="logo">
+                @*                    <img src="~/Img/More/MSClogo.png" title="فولاد مبارکه"/>
+                *@
+            </div>
+            <div class="name" style="width: auto;">
+                <p><b>فرم صورت وضعیت انجام کار</b></p>
+                <p><b>فضای سبز فولاد مبارکه</b></p>
+            </div>
+        </div>
+
+        <div class="bodytabelfactor mt-5">
+
+            <div class="mb-5">
+                <table>
+                    <tr id="headtable">
+                        <th rowspan="@(Model.Count()+1)"><b>کار درخواستی</b></th>
+                            <th>ردیف</th>
+                            <th>فعالیت</th>
+                            <th>شماره ابلاغ</th>
+                            <th>تاریخ ابلاغ</th>
+                            <th>واحد کار</th>
+                            <th>قیمت واحد (ریال)</th>
+                            <th>حجم کار</th>
+                            <th>قیمت تخمینی (ریال)</th>
+                            <th>محل اجرا</th>
+                            <th>مهلت اجرا</th>
+
+
+                    </tr>
+                    @{
+                        int l = 0;
+                        var totalsum = 0.0;
+                        foreach (var itemA in Model)
+                        {
+                            l++;
+                            totalsum += float.Parse(itemA.price.Replace("٬", ""));
+                            <tr>
+                                <td>@l</td>
+                                <td>@itemA.activity</td>
+                                <td>@itemA.numberEblagh</td>
+                                <td>@itemA.dateEblagh</td>
+                                <td>@itemA.volumeunit </td>
+                                <td>@((float.Parse(itemA.priceOne)).ToString("N0"))</td>
+                                <td>@itemA.volume </td>
+                                <td>@(float.Parse(itemA.price).ToString("N0"))</td>
+                                <td>@itemA.location</td>
+                                <td>@itemA.deadline</td>
+
+                            </tr>
+                        }
+                        <tr class="totaltr">
+                            <td colspan="5"></td>
+                            <td colspan="2">مجموع</td>
+                            <td colspan="4">@totalsum.ToString("N0")</td>
+                        </tr>
+                    }
+
+
+                </table>
+            </div>
+
+            <div class="Final">
+                <table>
+                    <tr id="headtable">
+                        <th rowspan="@(Model.Count()+1)"><b>کار انجام شده</b></th>
+                        <th>ردیف</th>
+                            <th>فعالیت</th>
+                            @*<th>کار انجام شده </th>*@
+                            <th>واحد کار </th>
+                            <th>قیمت واحد  (ریال)</th>
+                            <th>کار تایید شده </th>
+                            <th>قیمت  (ریال)</th>
+                            <th>ناظر </th>
+                            <th>مهلت اجرا </th>
+                            <th>محل اجرا</th>
+                            <th>تاریخ تایید </th>
+
+
+                    </tr>
+
+                    @{
+                        int k = 0;
+                        var totalsum2 = 0.0;
+                        foreach (var itemAA in Model)
+                        {
+                            k++;
+                            totalsum2 += float.Parse(itemAA.price.Replace("٬", ""));
+                            <tr>
+                                <td>@k</td>
+                                <td>@itemAA.activity</td>
+                                @*<td> @itemAA.listpersentUser</td>*@
+                                <td>@itemAA.volumeunit </td>
+                                <td>@((float.Parse(itemAA.priceOne)).ToString("N0"))</td>
+                                <td>@itemAA.listpersent</td>
+                                <td>@(float.Parse(itemAA.price).ToString("N0"))</td>
+                                <td>@itemAA.FullnameReciver</td>
+                                <td>@itemAA.deadline </td>
+                                <td>@itemAA.location</td>
+                                <td>@itemAA.DateConfraim</td>
+
+                            </tr>
+
+                        }
+                        <tr class="totaltr">
+                            <td colspan="5"></td>
+                            <td colspan="2">مجموع</td>
+                            <td colspan="4">@totalsum2.ToString("N0")</td>
+                        </tr>
+                    }
+
+                </table>
+            </div>
+        </div>
+        <div class="signuchre">
+
+            <div class="namesi">
+                <p>مهر و امضا  @Model[0].FullnameReciver</p>
+                @DateTime.Now.ToPeString("yyyy/MM/dd")
+            </div>
+            <div class="namesi">
+                <p>مهر و امضا  @Model[0].Fullnamefinallapprov</p>
+                @DateTime.Now.ToPeString("yyyy/MM/dd")
+            </div>
+
+
+        </div>
+    </section>
+    <section>
+        <button id="print" onclick="printdiv()">پرینت</button>
+    </section>
+</main>
+<script>
+     function printdiv()
+    {
+        var printContents = document.getElementById('content').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+</script>
+

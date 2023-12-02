@@ -1,0 +1,81 @@
+﻿@using Data.TMU.Model
+@model registerUser
+@{
+    ViewData["Title"] = "ثبت نام کاربر توسط ادمین";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<div class="formpanel">
+
+        <div class="row align-items-center h-100">
+
+
+            <form asp-action="registerUser" method="post" class="col-lg-6 col-md-8 col-10 mx-auto">
+                <input type="hidden" asp-for="CaptchaCode" value="s"/>
+                @*<div asp-validation-summary="All" class="text-danger">
+
+                </div> *@
+                <div class="mx-auto text-center my-4">
+                    <h2 class="my-3">ثبت نام</h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputEmail4">ایمیل</label>
+                    <input name="Email" type="email" class="form-control" id="inputEmail4">
+                    @Html.ValidationMessageFor(tuple => tuple.Email)
+                    <p></p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="firstname">نام و نام خانوادگی</label>
+                        <input name="FullName"  type="text" id="firstname" class="form-control">
+                        @Html.ValidationMessageFor(tuple => tuple.FullName)
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="mobile">موبایل</label>
+                        <input name="Mobile"  type="text" id="mobile" class="form-control">
+                        @Html.ValidationMessageFor(tuple => tuple.Mobile)
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="mobile">کدملی</label>
+                        <input name="IdCode"  type="text" id="mobile" class="form-control">
+                        @Html.ValidationMessageFor(tuple => tuple.IdCode)
+                    </div>
+
+                </div>
+                <hr class="my-4">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="inputPassword5">کلمه عبور</label>
+                            <input name="Password"  type="password" class="form-control" id="inputPassword5">
+                            @Html.ValidationMessageFor(tuple => tuple.Password)
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword6">تکرار کلمه عبور</label>
+                            <input name="RePassword"  type="password" class="form-control" id="inputPassword6">
+                            @Html.ValidationMessageFor(tuple => tuple.RePassword)
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="mb-2">شرایط رمزنگاری</p>
+                        <p class="small text-muted mb-2">برای داشتن رمز قوی به نکات زیر توجه کنید: </p>
+                        <ul class="small text-muted pl-4 mb-0">
+                            <li> حداقل 8 کاراکتر باشد </li>
+                            <li>یکی از حروف بزرگ باشد</li>
+                            <li>یک عدد قرارداشته باشد</li>
+                            <li>یک حروف کاراکتری نیز وجود داشته باشد </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-info" type="submit">ثبت نام</button>
+                <p class="mt-5 mb-3 text-muted text-center">© 2020</p>
+
+            </form>
+
+        </div>
+
+
+    </div>
+

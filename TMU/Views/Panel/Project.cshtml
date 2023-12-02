@@ -1,0 +1,570 @@
+﻿@model Data.TMU.Model.msc.ListMscPersentViewModel
+@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.User> _guser
+@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.msc> _gmsc
+@inject Core.TMU.Service.ITMUService.IGeneric<Data.TMU.Model.msc.MscPercent> _gMscPercent
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+@using Core.TMU.Convertor
+
+
+@using System.Text.Encodings.Web;
+
+@{
+    ViewData["Title"] = " پروژه های  " + @_user.FindUser(User.Identity.Name).FullName;
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+    var Allproject = ViewBag.AllProject as Data.TMU.Model.msc.ListMscViewModel;
+
+}
+
+<main role="main" class="main-content">
+
+    @{
+
+        @if (Model.category.Count() > 0)
+        {
+            <div class="cardpanel">
+                <div class="headerCard">
+                    <p>آخرین پروژه ها شما</p>
+                </div>
+                <div>
+                    <table>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>
+                                <input class="form-control" type="text" id="Activity" onkeyup="Activity()" placeholder="نام پروژه" title="نام پروژه">
+                            </th>
+                            <th>
+                                <input class="form-control" type="text" id="Sender" onkeyup="Sender()" placeholder="ایجاد کننده" title="ایجاد کننده">
+                            </th>
+                            <th>موقعیت</th>
+                            <th>حجم کار</th>
+                            <th>هزینه</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ اتمام</th>
+                            <th>تاریخ ثبت</th>
+
+                        </tr>
+
+                        <tbody id="myTable">
+                            @{
+                                int k = 0;
+
+                                foreach (var MP in Model.category)
+                                {
+                                    var item = _gmsc.GetById(MP.Idmsc);
+                                    DateTime Dedline;
+                                    try
+                                    {
+                                        Dedline = DateTime.Parse(item.deadline);
+
+                                    }
+                                    catch
+                                    {
+                                        var t = changeDate.Date(item.deadline, "28");
+                                        Dedline = DateTime.Parse(t);
+                                    }
+
+                                    DateTime today = DateTime.Parse(DateTime.Now.ToPeString("yyyy/MM/dd"));
+                                    var Result = Core.TMU.Convertor.ConvertTime.Compare(today, Dedline);
+                                    k++;
+                                    <tr>
+                                        <td>@k</td>
+                                        <td id="Activity">@item.Activity</td>
+                                        <td id="Sender">@item.author-@((int.Parse(_guser.GetById(item.IdAuthor).post) !=0)? Permision.GetRoleById(int.Parse(_guser.GetById(item.IdAuthor).post)).RoleTitle:"پست ندارد")</td>
+                                        <td id="location">@item.Location</td>
+                                        <td id="Volume">@item.Volume</td>
+                                        <td id="Price">@item.Price</td>
+                                        @{
+                                            if (item.Andicator != "0")
+                                            {
+                                                if (_msc.FindMscPersent(item.Idmsc).status == true)
+                                                {
+                                                    <td>به اتمام رسیده</td>
+                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                }
+                                                else
+                                                {
+                                                    if (_msc.GetStatusValidition(item.Idmsc, true, true))
+                                                    {
+                                                        <td>پروژه نیمه کاره است</td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td>پروژه در دست اقدام است</td>
+                                                    }
+                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                    //<td id=@((Result==1)?"ErrorTD":"")>@item.deadline</td>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <td>ثبت اندیکاتور نشده است</td>
+                                                <td>@item.deadline</td>
+                                            }
+                                        }
+
+                                        <td>@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</td>
+                                        @*<td>
+                                            <input type="hidden" value="@item.letter_number" id="myInput">
+                                            <button class="btn btn-outline-info" onclick="copy('@item.letter_number')">کپی کدرهگیری</button>
+                                            </td>
+
+                                            <td>
+
+                                            @{
+                                            if (_msc.GetStatusValidition(item.Idmsc, true, true))
+                                            {
+                                            <a href="/panel/UpdateProject/@item.letter_number/@item.Idmsc" type="button" class="btn btn-outline-secondary">شروع مجدد</a>
+                                            }
+                                            else
+                                            {
+                                            <button disabled type="button" class="btn btn-outline-secondary">قفل سیستم</button>
+                                            }
+                                            }
+                                            </td>*@
+                                    </tr>
+
+
+                                }
+
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <form asp-action="Project" method="get" id="form">
+                <input type="hidden" id="pageid" name="pageid" value="1" />
+                <nav aria-label="Table Paging" class="my-3">
+                    <ul class="pagination justify-content-end mb-0">
+                        <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                        @{
+
+
+                            for (int i = 1; i <= Model.CountPage; i++)
+                            {
+                                <li class=@(Model.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpage(@i)">@i</a></li>
+
+                            }
+
+                        }
+                        <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                    </ul>
+                </nav>
+            </form>
+
+        }
+        else
+        {
+
+            <div class="cardpanel">
+                <div class="headerCard">
+                    <p>آخرین پروژه ها شما</p>
+                </div>
+                <p class="alert1">پروژه ای ندارید</p>
+            </div>
+        }
+
+        //if (Permision.CheakPermissionAllow(1, @_user.FindUser(User.Identity.Name).Id) == true && Permision.CheakPermissionAllow(2, @_user.FindUser(User.Identity.Name).Id) == true)
+        //{
+        if (Allproject.cartabl.Count > 0)
+        {
+            <div class="cardpanel">
+
+                <div class="headerCard">
+                    <p>آخرین پروژه ها</p>
+                </div>
+                <div>
+                    <table>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>
+                                <input class="form-control" type="text" id="AllActivity" onkeyup="AllActivity()" placeholder="نام پروژه" title="نام پروژه">
+                            </th>
+                            <th>
+                                <input class="form-control" type="text" id="AllSender" onkeyup="AllSender()" placeholder="ایجاد کننده" title="ایجاد کننده">
+                            </th>
+                            <th>موقعیت</th>
+                            <th>حجم کار</th>
+                            <th>هزینه</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ اتمام</th>
+                            <th>تاریخ ثبت</th>
+                            <th>گردش کار</th>
+                        </tr>
+                        <tbody id="AllmyTable">
+                            @{
+
+                                int p = 0;
+                                foreach (var item in Allproject.cartabl)
+                                {
+                                    DateTime Dedline;
+                                    try
+                                    {
+                                        Dedline = DateTime.Parse(item.deadline);
+
+                                    }
+                                    catch
+                                    {
+                                        var t = changeDate.Date(item.deadline, "28");
+                                        Dedline = DateTime.Parse(t);
+                                    }
+                                    DateTime today = DateTime.Parse(DateTime.Now.ToPeString("yyyy/MM/dd"));
+                                    var Result = Core.TMU.Convertor.ConvertTime.Compare(today, Dedline);
+                                    p++;
+                                    <tr>
+                                        <td>@p</td>
+                                        <td id="AllActivity">@item.Activity</td>
+                                        <td id="AllSender">@item.author-@item.author-@((int.Parse(_guser.GetById(item.Idauthor).post) !=0)? Permision.GetRoleById(int.Parse(_guser.GetById(item.Idauthor).post)).RoleTitle:"پست ندارد")</td>
+                                        <td>@item.Location</td>
+                                        <td>@item.Volume</td>
+                                        <td>@item.Price</td>
+                                        @{
+                                            if (@item.Andicator != "0")
+                                            {
+                                                if (_msc.FindMscPersent(item.Idmsc).status == true)
+                                                {
+                                                    <td>به اتمام رسیده</td>
+                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                }
+                                                else
+                                                {
+                                                    <td>در حال انجام</td>
+                                                    <td id=@((Result==1)?"SuccesTD":"")>@item.deadline</td>
+                                                    //<td id=@((Result==1)?"ErrorTD":"")>@item.deadline</td>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <td>ثبت اندیکاتور نشده است</td>
+                                                <td>@item.deadline</td>
+                                            }
+                                        }
+                                        <td>@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</td>
+                                        <td>
+
+                                            @{
+                                                if (_msc.IsequalPercent(item.Idmsc))
+                                                {
+                                                    if (!_msc.GetStatusValidition(item.Idmsc, true, false))
+                                                    {
+                                                        if (_msc.GetStatusValidition(item.Idmsc, true, true) && _msc.ContMSCWhitLeterNumber(item.letter_number) < 2 && _msc.FindMscPersent(item.Idmsc).status == false)
+                                                        {
+                                                            //if (_gMscPercent.GetEntity(p => p.Idmsc == item.Idmsc).statusstatusface == true)
+                                                            //{
+                                                            //    <button disabled type="button" class="btn btn-outline-secondary" title="صورت وضعیت قبلی را پرینت نمایید"><i class="fa fa-lock"></i></button>
+                                                            //}
+                                                            //else
+                                                            //{
+                                                            //    <a href="/panel/UpdateProject/@item.letter_number/@item.Activity/@item.Idmsc" type="button" class="btn btn-outline-secondary" title="شروع مجدد"><i class="fa fa-plug"></i></a>
+                                                            //}
+
+                                                        }
+                                                        else
+                                                        {
+                                                            <button disabled type="button" class="btn btn-outline-secondary" title="قفل سیستم"><i class="fa fa-lock"></i></button>
+                                                        }
+
+                                                        //if (_msc.FindMscPersent(item.Idmsc) != null && _msc.ContMSCWhitLeterNumber(item.letter_number) < 2 && Permision.CheakPermissionAllow(8, @_user.FindUser(User.Identity.Name).Id) == true)
+                                                        //{
+                                                        //    if (Permision.CheakPermissionAllow(8, @_user.FindUser(User.Identity.Name).Id) == true)
+                                                        //    {
+                                                        //        <a href="/panel/CreatProject/@item.letter_number/@item.Idmsc" class="btn btn-outline-danger" title="متمم"><i class="fa fa-legal"></i></a>
+
+                                                        //    }
+                                                        //    else
+                                                        //    {
+                                                        //        <button disabled href="#" class="btn btn-outline-danger" title="مجوز ندارید"><i class="fa fa-ban"></i></button>
+
+                                                        //    }
+                                                        //}
+                                                    }
+                                                    else
+                                                    {
+                                                        <button disabled href="#" class="btn btn-outline-danger" title="در دست اقدام"><i class="fa fa-minus-circle"></i></button>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <button disabled href="#" class="btn btn-outline-danger" title="تایید توشط کارشناس انجام نشد"><i class="fa fa-minus-circle"></i></button>
+
+                                                }
+
+
+
+                                            }
+
+                                            @{
+                                                var modalshow = "#show-example-modal-lg" + item.Idmsc;
+                                                var modalidshow = "show-example-modal-lg" + item.Idmsc;
+                                            }
+
+                                            <button type="button" class="btn btn-outline-secondary" data-toggle="modal" title="نمایش" data-target=@modalshow><i class="fa fa-eye"></i></button>
+                                            <div class="modal fade" id=@modalidshow tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="list-group">
+                                                            <a href="#" class="list-group-item list-group-item-action">اطلاعات @item.Activity</a>
+                                                            @{
+                                                                var msc = _gmsc.GetById(item.Idmsc);
+                                                            }
+                                                            <h3><strong>فعالیت:</strong>@item.Activity</h3>
+                                                            <h3><strong>موقعیت:</strong>@msc.Location</h3>
+                                                            @{
+                                                                switch (msc.Location)
+                                                                {
+                                                                    case "سری":
+                                                                        <h3>سری :@msc.Seri</h3>
+                                                                        break;
+
+                                                                    case "پارسل":
+
+                                                                        <h3>پارسل :@msc.parcel</h3>
+                                                                        break;
+
+                                                                    case "چاه":
+                                                                        <h3>چاه :@msc.Well</h3>
+                                                                        break;
+
+                                                                }
+                                                            }
+                                                            <h3><strong>هزینه:</strong>@msc.Price</h3>
+                                                            <h3><strong>واحد:</strong>@msc.Unit</h3>
+                                                            <h3><strong>آخرین ارجاع:</strong>@msc.Description</h3>
+                                                            <h3><strong>تاریخ:</strong>@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</h3>
+                                                            <h3><strong>مهلت انجام کار:</strong>@item.deadline</h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @{
+                                                var Tree = _msc.ListMscUserbyid(item.Idmsc);
+                                                var modal = "#bd-example-modal-lg" + item.Idmsc;
+                                                var modalid = "bd-example-modal-lg" + item.Idmsc;
+                                            }
+
+                                            <button type="button" class="btn btn-outline-secondary" data-toggle="modal" title="گردش کار" data-target=@modal><i class="fa fa-exchange"></i></button>
+                                            <div class="modal fade" id=@modalid tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="list-group">
+                                                            <a href="#" class="list-group-item list-group-item-action">گردش کار @item.Activity</a>
+
+                                                            <table class="table table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th scope="col">ردیف</th>
+                                                                        <th scope="col">فرستنده</th>
+                                                                        <th scope="col">گیرنده</th>
+                                                                        <th scope="col">حجم</th>
+                                                                        <th scope="col">ضریب</th>
+                                                                        <th scope="col">تاریخ ارسال</th>
+                                                                        <th scope="col">رویت</th>
+                                                                        <th scope="col">متن ارجاع</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @{
+                                                                        for (var i = 0; i < Tree.Count; i++)
+                                                                        {
+
+                                                                            <tr class=@((Tree[i].idsender==_user.FindUser(User.Identity.Name).IdCode || Tree[i].idreciver==_user.FindUser(User.Identity.Name).IdCode)?"table-success":"")>
+                                                                                <th scope="row">@(i+1)</th>
+                                                                                @{
+                                                                                    if (Tree[i].idsender == "System")
+                                                                                    {
+                                                                                        <th>سیستم</th>
+
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <th>@_user.FindUser(Tree[i].idsender).FullName-@((int.Parse(_user.FindUser(Tree[i].idsender).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idsender).post)).RoleTitle:"پست ندارد")</th>
+
+                                                                                    }
+                                                                                    if (Tree[i].idreciver == "System")
+                                                                                    {
+                                                                                        <th>سیستم</th>
+
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        <th>@_user.FindUser(Tree[i].idreciver).FullName-@((int.Parse(_user.FindUser(Tree[i].idreciver).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idreciver).post)).RoleTitle:"پست ندارد")</th>
+                                                                                    }
+                                                                                }
+                                                                                <th>@Tree[i].Volume</th>
+                                                                                <th>@Tree[i].factoroffer</th>
+                                                                                <th>@Tree[i].Deta.ToPeString("dddd, dd, MMMM,yyyy")</th>
+                                                                                <th>
+                                                                                    @{
+                                                                                        if (Tree[i].view == 1)
+                                                                                        {
+                                                                                            <i class="fa fa-remove"></i>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            <i class="fa fa-check"></i>
+                                                                                        }
+                                                                                    }
+                                                                                </th>
+                                                                                <th>@Tree[i].Description</th>
+                                                                            </tr>
+
+
+                                                                        }
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                }
+
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div>
+                @{
+                    var total = _msc.GetAllMscForUser(false) + _msc.GetAllMscForUser(true);
+                }
+                <input type="hidden" value="@total" id="total" />
+                <input type="hidden" value="@_msc.GetAllMscForUser(true)" id="Pandicator" />
+                @* <canvas id="Chart" style="width:100%;max-width:412px"></canvas>*@
+            </div>
+        }
+        <form asp-action="Project" method="get" id="formAll">
+            <input type="hidden" id="pageidAll" name="pageidAll" value="1" />
+            <nav aria-label="Table Paging" class="my-3">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                    @{
+
+
+                        for (int i = 1; i <= Allproject.CountPage; i++)
+                        {
+                            <li class=@(Allproject.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpageAll(@i)">@i</a></li>
+
+                        }
+
+                    }
+                    <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                </ul>
+            </nav>
+        </form>
+
+        //}
+
+    }
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+               function countpage(pageid)
+               {
+                   $("#pageid").val(pageid);
+                   $("#form").submit();
+               }
+               function countpageAll(r)
+               {
+                   $("#pageidAll").val(r);
+                   $("#formAll").submit();
+               }
+
+        function myFunction() {
+          var copyText = document.getElementById("myInput");
+          copyText.select();
+          copyText.setSelectionRange(0, 99999)
+          document.execCommand("copy");
+          alert("متن کپی شد : " + copyText.value);
+        }
+
+        //هه پروژه ها
+        function AllActivity() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("AllActivity");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("AllmyTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[1];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         function AllSender() {
+           var input, filter, table, tr, td, i, txtValue;
+           input = document.getElementById("AllSender");
+           filter = input.value.toUpperCase();
+           table = document.getElementById("AllmyTable");
+           tr = table.getElementsByTagName("tr");
+           for (i = 0; i < tr.length; i++) {
+             td = tr[i].getElementsByTagName("td")[2];
+             if (td) {
+               txtValue = td.textContent || td.innerText;
+               if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                 tr[i].style.display = "";
+               } else {
+                 tr[i].style.display = "none";
+               }
+             }
+           }
+         }
+         ///////////////
+
+
+
+
+         function Activity() {
+              var input, filter, table, tr, td, i, txtValue;
+              input = document.getElementById("Activity");
+              filter = input.value.toUpperCase();
+              table = document.getElementById("myTable");
+              tr = table.getElementsByTagName("tr");
+              for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1];
+                if (td) {
+                  txtValue = td.textContent || td.innerText;
+                  if (txtValue.toUpperCase().indexOf(filter) > -1) {AllSender
+                    tr[i].style.display = "";
+                  } else {
+                    tr[i].style.display = "none";
+                  }
+                }
+              }
+            }
+            function Sender() {
+              var input, filter, table, tr, td, i, txtValue;
+              input = document.getElementById("Sender");
+              filter = input.value.toUpperCase();
+              table = document.getElementById("myTable");
+              tr = table.getElementsByTagName("tr");
+              for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[2];
+                if (td) {
+                  txtValue = td.textContent || td.innerText;
+                  if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                  } else {
+                    tr[i].style.display = "none";
+                  }
+                }
+              }
+            }
+
+
+    </script>
+</main>
+

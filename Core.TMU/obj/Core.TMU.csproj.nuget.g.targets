@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)groupdocs.conversion\23.5.0\build\netstandard2.1\GroupDocs.Conversion.targets" Condition="Exists('$(NuGetPackageRoot)groupdocs.conversion\23.5.0\build\netstandard2.1\GroupDocs.Conversion.targets')" />
+    <Import Project="$(NuGetPackageRoot)cete.dynamicpdf.converter.net\3.19.0\build\netstandard20\ceTe.DynamicPDF.Converter.NET.targets" Condition="Exists('$(NuGetPackageRoot)cete.dynamicpdf.converter.net\3.19.0\build\netstandard20\ceTe.DynamicPDF.Converter.NET.targets')" />
+  </ImportGroup>
+</Project>

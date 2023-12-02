@@ -1,0 +1,97 @@
+﻿@model Data.TMU.Model.LoginViewModel
+@using DNTCaptcha.Core
+@{
+    Layout = null;
+}
+
+@await Html.PartialAsync("_PanelStyle")
+<link rel="stylesheet" href="~/css/Panel/login.css">
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/js/chapcha/jquery.unobtrusive-ajax.js"></script>
+
+<body class="light rtl" style="overflow-x:hidden">
+
+    <section>
+        <form asp-action="Login" method="post">
+            <div class="login">
+                <div id="time">
+                    <p>@DateTime.Now.ToString("HH:mm:ss")&nbsp;-&nbsp;@DateTime.Now.ToPeString("dddd, dd, MMMM,yyyy")</p>
+                </div>
+                <div id="login">
+
+
+                    <div id="form">
+                        @{
+                            if (ViewBag.IsResetpassword == true)
+                            {
+                                <h1 class="h6 mb-3">تغییر پسورد با موفقیت انجام شد</h1>
+                            }
+                        }
+                        <input name="returnUrl" type="hidden" value="@ViewBag.returnUrl">
+
+                        <h3>سامانه مدیریت پروژه</h3>
+                        <p>به سمپافو خوش آمدید</p>
+                        <div id="input">
+                            <label>کد ملی</label>
+                            <input asp-for="CodeId" type="text" type="text" placeholder="کد ملی را وارد کنید" autofocus="">
+                            <span asp-validation-for="CodeId"></span>
+                            <label>پسورد</label>
+                            <div class="d-flex">
+                                <input asp-for="Password" id="myInputPass" type="password" placeholder="پسورد را وارد کنید">
+                                <i class="fa fa-eye" id="fa-eye" onclick=myFunction()></i>
+
+                            </div>
+
+                            <dnt-captcha asp-captcha-generator-max="9000"
+                                         asp-captcha-generator-min="1000"
+                                         asp-captcha-generator-language="Persian"
+                                         asp-captcha-generator-display-mode="ShowDigits"
+                                         asp-use-relative-urls="false"
+                                         asp-placeholder="کد امنیتی را وارد کنید"
+                                         asp-validation-error-message="کد امنیتی را درست وارد کنید"
+                                         asp-font-name="Tahoma"
+                                         asp-font-size="20"
+                                         asp-fore-color="#00000"
+                                         asp-back-color="red"
+                                         asp-text-box-class="text-box single-line form-control col-md-4"
+                                         asp-text-box-template="<div class='input-group col-md-4'><span class='input-group-addon'><span class='glyphicon glyphicon-lock'></span></span>{0}</div>"
+                                         asp-validation-message-class="text-danger"
+                                         asp-refresh-button-class="fa fa-refresh btn-sm"
+                                         asp-show-refresh-button="true"
+                                         asp-dir="rtl"
+                                         asp-use-noise="false" />
+                            <label class="text-center">
+                                <input asp-for="RememberMe" type="checkbox" value="true"> مرا به خاطر بسپار
+                            </label>
+                            <a class="text-center" id="forgetpassword" href="#">فراموشی رمز</a>
+
+                            <input type="submit" value="ورود">
+                        </div>
+
+                    </div>
+                    <div id="img">
+                        <img src="~/Img/automation.png" alt="">
+                    </div>
+
+                </div>
+            </div>
+        </form>
+
+    </section>
+    <script>
+        function myFunction() {
+          var x = document.getElementById("myInputPass");
+
+          if (x.type === "password") {
+            x.type = "text";
+            document.getElementById("fa-eye").className = "fa fa-eye-slash";
+          } else {
+            x.type = "password";
+            document.getElementById("fa-eye").className = "fa fa-eye";
+          }
+        }
+
+    </script>
+</body>

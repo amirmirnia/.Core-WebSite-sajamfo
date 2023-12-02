@@ -1,0 +1,28 @@
+﻿@using System.Text.Encodings.Web;
+
+@{
+    ViewData["Title"] = "سامانه سجام فو";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+
+    var slider = ViewBag.slider as Data.TMU.Model.Slider.ListSliderViewModel;
+    var news = ViewBag.news as Data.TMU.Model.News.ListNewsViewModel;
+}
+<!-- Carousel slider wrapper -->
+
+<body style="overflow:hidden">
+    <section>
+        <div class="slide">
+            <div class="slidetext">
+                <h2>سامانه جامع مدیریت فضای سبز</h2>
+                <p>مدیریت دانش بنیان فضای سبز بر بستری از امکانات و داده‌های دقیق  با تلفیق علوم مدیریت پروژه و علوم داده‌های مکانی.</p>
+                @*<button>بیشتر</button>*@
+                <img src="/Img/More/d2b3881b62234a4687baeb819d65fbd1.w_824,h_682,r_k.png" alt="" >
+            </div>
+        </div>
+
+    </section>
+</body>
+
+
+
+

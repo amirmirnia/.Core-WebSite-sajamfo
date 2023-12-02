@@ -1,0 +1,157 @@
+﻿@model Data.TMU.Model.News.ListNewsViewModel
+@using Core.TMU.Convertor
+@{
+    ViewData["Title"] = "لیست اخبار";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<main role="main" class="main-content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="row align-items-center my-4">
+                    <div class="col">
+                        <h2 class="h3 mb-0 page-title">لیست خبر ها</h2>
+                    </div>
+
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-secondary"><span class="fe fe-trash fe-12 mr-2"></span>حذف</button>
+                        <a href="/panel/CreatNews" type="button" class="btn btn-primary"><span class="fe fe-filter fe-12 mr-2"></span>ایجاد</a>
+                    </div>
+
+                </div>
+                <form asp-action="ListNews" method="get" id="form">
+
+                    <input type="hidden" id="pageid" name="pageid" value="1" />
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="inputEmail4">عنوان</label>
+                            <input type="text" class="form-control" id="inputAddress" value="@ViewBag.tag" name="tag" placeholder="کلمه کلیدی را وارد کنید">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="inputPassword4">تگ</label>
+                            <input type="text" class="form-control" id="inputAddress" value="@ViewBag.filtertitel" name="filtertitel" placeholder=" عنوان خبر را وارد کنید">
+                        </div>
+                        <br />
+                        <div class="form-group col-md-4">
+                            <label for="inputPassword4"></label>
+                            <button type="submit" class="btn btn-success">جستجو</button>
+                        </div>
+                    </div>
+
+                </form>
+                <!-- table -->
+                <div class="card shadow">
+                    <div class="card-body">
+                        <table class="table table-borderless table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="all2">
+                                            <label class="custom-control-label" for="all2"></label>
+                                        </div>
+                                    </th>
+                                    <th>عکس</th>
+                                    <th>عنوان</th>
+                                    <th>تعداد بازدید</th>
+                                    <th>تارخ ثبت</th>
+                                    <th>نویسنده</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <form asp-action="" method="post">
+                            <tbody>
+                                    @{
+                                        foreach (var item in Model.ListNews)
+                                        {
+                                        <tr>
+                                            <td>
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="@item.IdNews" name="checkdelete">
+                                                    <label class="custom-control-label" for="@item.IdNews"></label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="avatar avatar-sm">
+                                                    <img src="" alt="" class="avatar-img rounded-circle">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 text-muted"><strong>@item.TitelNews</strong></p>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 text-muted"><strong>@item.CountView</strong></p>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 text-muted">@item.DetaNews.ToPeString("dddd, dd, MMMM,yyyy")</p>
+                                                <small class="mb-0 text-muted"></small>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 text-muted">@item.author</p>
+                                                <small class="mb-0 text-muted"></small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm dropdown-toggle more-horizontal" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <span class="text-muted sr-only">Action</span>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-right">
+                                                    <a class="dropdown-item" href="/panel/UpdateNews?id=@item.IdNews">ویرایش خبر</a>
+                                                    <a class="dropdown-item" href="" onclick="confirmAction(@item.IdNews)">حذف خبر</a>
+                                                    <a class="dropdown-item" href="/panel/DetailImageNews/@item.IdNews"> ویرایش عکس</a>
+                                                    <a class="dropdown-item" href="/panel/CreatImageNews/@item.IdNews">ثبت عکس</a>
+
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        }
+                                    }
+
+
+                            </tbody>
+                            </form>
+
+
+                        </table>
+                    </div>
+                </div>
+                <nav aria-label="Table Paging" class="my-3">
+                    <ul class="pagination justify-content-end mb-0">
+                        <li class="page-item"><a class="page-link" href="#">قبلی</a></li>
+                        @{
+
+
+                            for (int i = 1; i <= Model.CountPage; i++)
+                            {
+                                <li class=@(Model.IdPage==i?"page-item active" :"page-item")><a class="page-link" onclick="countpage(@i)">@i</a></li>
+
+                            }
+
+                        }
+                        <li class="page-item"><a class="page-link" href="#">بعدی</a></li>
+                    </ul>
+                </nav>
+            </div> <!-- .col-12 -->
+        </div> <!-- .row -->
+    </div> <!-- .container-fluid -->
+
+</main>
+
+<script>
+       function countpage(pageid)
+       {
+           $("#pageid").val(pageid);
+           $("#form").submit();
+       }
+
+    function confirmAction(id) {
+           let confirmAction = confirm("آیا از حذف اطمینان دارید");
+           if (confirmAction) {
+             window.open("/panel/DeleteNews/"+id);
+           } else {
+             alert("حذف لغو شد");
+           }
+         }
+</script>
+

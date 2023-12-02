@@ -1,0 +1,72 @@
+﻿@inject Core.TMU.Service.ITMUService.Imsc _msc
+@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.IPermision Permision
+@{
+    var Allproject = ViewBag.AllProject as Data.TMU.Model.msc.ListMscViewModel;
+}
+
+@{
+    if (Allproject.cartabl.Count > 0)
+    {
+
+        foreach (var item in Allproject.cartabl)
+        {
+            var Tree = _msc.ListMscUserbyid(item.Idmsc);
+            var modal = "#bd-example-modal-lg" + item.Idmsc;
+            var modalid = "bd-example-modal-lg" + item.Idmsc;
+
+            <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target=@modal>گردش کار</button>
+            <div class="modal fade" id=@modalid tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action">گردش کار @item.Activity</a>
+
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">ردیف</th>
+                                        <th scope="col">فرستنده</th>
+                                        <th scope="col">گرینده</th>
+                                        <th scope="col">تاریخ ارسال</th>
+                                        <th scope="col">متن ارجاع</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        for (var i = 0; i < Tree.Count; i++)
+                                        {
+
+                                            <tr class=@((Tree[i].idsender==_user.FindUser(User.Identity.Name).IdCode || Tree[i].idreciver==_user.FindUser(User.Identity.Name).IdCode)?"table-success":"")>
+                                                <th scope="row">@(i+1)</th>
+                                                @{
+                                                    if (Tree[i].idsender == "System")
+                                                    {
+                                                        <th>سیستم</th>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <th>@_user.FindUser(Tree[i].idsender).FullName-@((int.Parse(_user.FindUser(Tree[i].idsender).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idsender).post)).RoleTitle:"پست ندارد")</th>
+
+                                                    }
+                                                }
+                                                <th>@_user.FindUser(Tree[i].idreciver).FullName-@((int.Parse(_user.FindUser(Tree[i].idreciver).post) !=0)?Permision.GetRoleById(int.Parse(_user.FindUser(Tree[i].idreciver).post)).RoleTitle:"پست ندارد")</th>
+                                                <th>@Tree[i].Deta.ToPeString("dddd, dd, MMMM,yyyy")</th>
+                                                <th>@Tree[i].Description</th>
+                                            </tr>
+
+
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+}

@@ -1,0 +1,113 @@
+﻿@model Data.TMU.Model.User
+@inject Core.TMU.Service.ITMUService.IUser _user
+
+@{
+    ViewData["Title"] = "اطلاعات کابر-" + @Model.FullName;
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+
+<main role="main" class="main-content">
+    <div class="Header-Countainer mt-5">
+        تنظیمات اطلاعات  @Model.FullName
+    </div>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                @* <h2 class="h3 mb-4 page-title">پروفایل</h2>*@
+                <div class="row mt-5 align-items-center">
+                    <div class="col-md-3 text-center mb-5">
+                        <div class="avatar avatar-xl">
+                            <img src="~/Img/Userprofile/@Model.UserAvatar" alt="@Model.FullName" class="avatar-img rounded-circle">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <h4 class="mb-1">@Model.FullName</h4>
+                                <p class="small mb-3"><span class="badge badge-dark">@Model.Email</span></p>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-7 alert2">
+                                <p class="text-muted"> @Model.FullName  عزیز به صفحه کاربری خود خوش آمدید. در صورت بروز مشکل لطفا با ادمین سایت تماس حاصل فرمایید </p>
+                            </div>
+                            <div class="col alert2">
+                                <p class="small mb-0 text-muted">تاریخ ثبت: @Model.RegisterDate.ToPeString("dddd, dd, MMMM,yyyy")</p>
+                                <p class="small mb-0 text-muted">وضعیت: @((@Model.IsActive==true)?"فعال":"غیرفعال")</p>
+                                <p class="small mb-0 text-muted">موبایل: @Model.Mobile</p>
+                            </div>
+                        </div>
+                        <form asp-action="UploadFile" method="post" enctype="multipart/form-data">
+                            @{
+                                if (_user.FindUser(User.Identity.Name).IsAdmin == true)
+                                {
+                                    <div class="row mb-4">
+                                        <div class="col-md-7 alert2">
+                                            <p class="text-muted">(با فرمت PDF)فایل قرارداد را در این بخش آپلود نمایید </p>
+                                        </div>
+                                        <div class="col alert2">
+                                            <input type="file" name="file" title="آپلود فایل قرارداد" cept="application/pdf"/>
+                                            <button type="submit" title="آپلود" class="btn btn-outline-secondary m-2"> آپلود</button>
+                                        </div>
+                                    </div>
+                                }
+
+                            }
+
+                        </form>
+
+                    </div>
+                </div>
+                <div class="row my-4">
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow">
+                            <div class="card-body my-n3">
+                                <div class="row align-items-center">
+                                    <div class="col-3 text-center">
+                                        <span class="circle circle-lg bg-light">
+                                            <i class="fe fe-user fe-24 text-primary"></i>
+                                        </span>
+                                    </div> <!-- .col -->
+                                    <div class="col">
+                                        <a href="#">
+                                            <h3 class="h5 mt-4 mb-1">تنظیمات شخصی</h3>
+                                        </a>
+                                        <p class="text-muted">برای تنظیمات شخصی خود وارد شوید</p>
+                                    </div> <!-- .col -->
+                                </div> <!-- .row -->
+                            </div> <!-- .card-body -->
+                            <div class="card-footer">
+                                <a href="/Panel/profilesettings" class="d-flex justify-content-between text-muted"><span>وارد تنظیمات شخضی شوید</span><i class="fe fe-chevron-left"></i></a>
+                            </div> <!-- .card-footer -->
+                        </div> <!-- .card -->
+                    </div> <!-- .col-md-->
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow">
+                            <div class="card-body my-n3">
+                                <div class="row align-items-center">
+                                    <div class="col-3 text-center">
+                                        <span class="circle circle-lg bg-light">
+                                            <i class="fe fe-shield fe-24 text-primary"></i>
+                                        </span>
+                                    </div> <!-- .col -->
+                                    <div class="col">
+                                        <a href="#">
+                                            <h3 class="h5 mt-4 mb-1">امنیت</h3>
+                                        </a>
+                                        <p class="text-muted">در صورت تغییر پسورد خود وارد بخش امنیت شوید.</p>
+                                    </div> <!-- .col -->
+                                </div> <!-- .row -->
+                            </div> <!-- .card-body -->
+                            <div class="card-footer">
+                                <a href="/Panel/ResetPassword" class="d-flex justify-content-between text-muted"><span>وارد تنظیمات امنیتی شوید</span><i class="fe fe-chevron-left"></i></a>
+                            </div> <!-- .card-footer -->
+                        </div> <!-- .card -->
+                    </div> <!-- .col-md-->
+
+                </div> <!-- .row-->
+            </div> <!-- /.col-12 -->
+        </div> <!-- .row -->
+    </div> <!-- .container-fluid -->
+
+</main>
+

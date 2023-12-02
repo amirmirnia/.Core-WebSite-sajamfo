@@ -1,0 +1,96 @@
+﻿@model Data.TMU.Model.msc.PriceList
+@inject Core.TMU.Service.ITMUService.IUser user
+@{
+    ViewData["Title"] = "ایجاد فهرست بها";
+    Layout = "~/Views/Shared/_PanelLayout.cshtml";
+}
+<section>
+    <form asp-action="Creatpricelist" method="post">
+        <div class="formpanel">
+            <div class="headerform">
+                <p>ثبت فهرست بها</p>
+            </div>
+            <input asp-for="IdCode" type="hidden" value=@User.Identity.Name>
+            <input asp-for="Year" type="hidden" value=@DateTime.Now.ToPeString("yyyy")>
+            <input asp-for="DetaNews" type="hidden" value=@DateTime.Now>
+            <div class="bodyF">
+
+                <div class="bodyform">
+                    <div>
+                        <label>زمان ایجاد</label>
+                        <input type="text" asp-for="DetaNews" disabled value="@DateTime.Now.ToPeString("dddd, dd, MMMM,yyyy")" class="form-control">
+
+                    </div>
+
+                    <div>
+                        <label>دسته فعالیت</label>
+                        <select class="form-control mb-1" id="selectActivity"  asp-for="CaregouryActivity" asp-items="@(ViewBag.PriceActivity as SelectList)">
+                       <option value="">دسته فعالیت مورد نظر را انتخاب کنید</option>
+                        </select>
+                        <span asp-validation-for="CaregouryActivity"></span>
+                    </div>
+                    <div>
+                        <label>فعالیت</label>
+                        <input required oninvalid="this.setCustomValidity('لطفا فعالیت را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" asp-for="Activity">
+                        <span asp-validation-for="Activity"></span>
+                    </div>
+
+                    
+                    <div>
+                        <label>واحد</label>
+                        <input autocomplete="off" required oninvalid="this.setCustomValidity('لطفا واحد را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" asp-for="unit" onchange="sum()" onkeyup="sum()">
+                        <span asp-validation-for="unit"></span>
+                    </div>
+                </div>
+                <div class="bodyform">
+
+                    <div>
+                        <label>مدت به ماه</label>
+                        <input autocomplete="off" required oninvalid="this.setCustomValidity('لطفا مدت را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" id="month" asp-for="month">
+                        <span asp-validation-for="month"></span>
+                    </div>
+                    <div>
+                        <label>مقدار</label>
+                        <input autocomplete="off" required oninvalid="this.setCustomValidity('لطفا مقدار را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" id="value" asp-for="value" onchange="sum()" onkeyup="sum()">
+                        <span asp-validation-for="value"></span>
+                    </div>
+                    <div>
+                        <label>ضریب پیشنهادی</label>
+                        <input autocomplete="off" required oninvalid="this.setCustomValidity('لطفا ضریب پیشنهادی را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" id="factoroffer" asp-for="factoroffer" onchange="sum()" onkeyup="sum()">
+                        <span asp-validation-for="factoroffer"></span>
+                    </div>
+                    <div>
+                        <label>بهای واحد (ریال) </label>
+                        <input autocomplete="off" required oninvalid="this.setCustomValidity('لطفا بهای واحد(ریال) را پر کنید')" oninput="this.setCustomValidity('')"  type="text" class="form-control Money" id="price" asp-for="Price" onchange="sum()" onkeyup="sum()">
+                        <span asp-validation-for="Price"></span>
+                    </div>
+                    <div>
+                        <label>مبلغ کل(ریال)</label>
+                        <input autocomplete="off" type="text" readonly class="form-control Money" id="TotalPrice" asp-for="TotalPrice">
+                        <span asp-validation-for="TotalPrice"></span>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-outline-secondary m-3">ثبت</button>
+        </div>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script>
+                function sum()
+                {
+                 var r= parseFloat(document.getElementById("price").value) * parseInt(document.getElementById("value").value)* parseInt(document.getElementById("month").value)*parseFloat(document.getElementById("factoroffer").value);
+                document.getElementById("TotalPrice").value = new Intl.NumberFormat('fa-IR').format(r);            
+                }
+    </script>
+
+    <script>
+        const inputField = document.getElementById("inputFieldText");
+
+         inputField.addEventListener("input", function() {
+           if (isNaN(inputField.value)) {
+             alert("ضریب پیشنهادی باید عدد باشد");
+           }
+         });
+    </script>
+</section>
+

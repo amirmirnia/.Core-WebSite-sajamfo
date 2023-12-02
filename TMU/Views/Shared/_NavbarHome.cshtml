@@ -1,0 +1,96 @@
+﻿@inject Core.TMU.Service.ITMUService.IUser _user
+@inject Core.TMU.Service.ITMUService.INavbar _Nav
+@inject Core.TMU.Service.ITMUService.INews _news
+@using Core.TMU.Convertor
+@{
+
+    var listnav = _Nav.GetAllNavbar(1, null, 50,"خبری");
+
+}
+
+@*<li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 text-text-white rounded" href="/MoreNews">خبر</a></li>
+    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/Search">جنگل تحقیقاتی</a></li>
+    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/MoreGallery">آلبوم</a></li>*@
+@{
+
+    foreach (var item in listnav.ListNavbar)
+    {
+        ViewBag.news = _news.GetAllNews(1, null, item.TitelNav, 2, false);
+        var news = ViewBag.news as Data.TMU.Model.News.ListNewsViewModel;
+        if (item.ParentId == 0)
+        {
+            if (_Nav.IsParent(item.Id))
+            {
+                <div class="dropdownmenu">
+                    <button class="dropbtn">
+                        @item.TitelNav
+
+                    </button>
+                    <div class="dropdownmenu-content">
+                        <div class="row">
+                            <div class=@((news.ListNews.Count!=0)?"col-4 mb-3":"mb-3") id="subcontent">
+
+                                @foreach (var item2 in _Nav.GetSubNavbar(item.Id))
+                                {
+
+
+                                    if (_Nav.GetSubNavbar(item2.Id).Count != 0)
+                                    {
+                                        <ul class="droplink" href="@item2.linkAdres" title="@item2.TitelNav">
+                                            @item2.TitelNav
+
+                                            <div class="Subdropdownmenu">
+                                                @foreach (var item3 in _Nav.GetSubNavbar(item2.Id))
+                                                {
+                                                    <a class="sublink" href="@item3.linkAdres" title="@item3.TitelNav">@item3.TitelNav</a>
+
+                                                }
+                                            </div>
+                                        </ul>
+
+                                    }
+                                    else
+                                    {
+                                        <a class="droplink" href="@item2.linkAdres" title="@item2.TitelNav">@item2.TitelNav</a>
+                                    }
+
+
+
+                                }
+                            </div>
+
+                            <div class=@((news.ListNews.Count!=0)?"col-7 imgdrop d-flex flex-column":"imgdrop d-flex flex-column") id="subcontentnews">
+                                @{
+                                    if (news.ListNews.Count != 0)
+                                    {
+                                        <p class="position-relative mt-3">درباره @item.TitelNav</p>
+                                        <hr style="width:80%" />
+                                    }
+                                    foreach (var item3 in news.ListNews)
+                                    {
+                                        <div>
+                                            <a href="/News/@item3.IdNews/@System.Web.HttpUtility.UrlEncode(item3.TitelNews.Replace(" ", "-"))" class="d-flex align-items-center">
+                                                <img src="/Img/News/Org/@item3.image" title="@item3.TitelNews" width=100 class="mr-2" />
+                                                <div class="m-2">
+                                                    <p>@item3.TitelNews</p>
+                                                    <span>@item3.DetaNews</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+}
+@{
+    if (User.Identity.IsAuthenticated)
+    {
+        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/panel">پنل</a></li>
+
+    }
+}
